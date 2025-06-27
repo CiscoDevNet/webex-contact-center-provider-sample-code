@@ -8,7 +8,8 @@
 5. [Getting Started with BYoVA](#byova-getting-started-section)
 5.2. [Use cases](#communication-section)
 6. [Getting Started with Media Forking](#starting-media-forking-section)
-7. [References](#references-section)
+7. [mTLS authentication support](#mtls-authentication-support-section)
+8. [References](#references-section)
 
 # Webex Contact Center Media service APIs <a name="media-service-api-section"></a>
 Provides interface to handle media related use cases for webex contact center platform consumers.
@@ -395,7 +396,12 @@ Response:
 "lastUpdated": "2021-01-22T12:24:37.382Z",
 }
 ```
+# mTLS authentication support <a name="mtls-authentication-support-section"></a>
+mTLS (Mutual TLS) is an extension of TLS (Transport Layer Security) that ensures both the `CCAI` (client) and `Dialog Connector` (server) authenticate each other during communication. 
+Unlike standard TLS, which only authenticates the virtual agent to the `CCAI`, mTLS requires both parties to present and validate certificates, providing bidirectional authentication.
+mTLS is used in this scenario to ensure secure communication and mutual authentication between the `Dialog Connector` and the `CCAI`.
 
+Refer to [wiki](mTLSAuthentication.md) for more details on mTLS authentication support. 
 
 # References <a name="references-section"></a>
 1. **Service apps** - https://developer.webex.com/admin/docs/service-apps
