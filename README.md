@@ -1,111 +1,321 @@
-# Table of Contents
-1. [Media Service APIs](#media-service-api-section)
-   - [Bring your Own Virtual agent](#byova-section)
-   - [Media Forking](#media-forking-section)
-2. [Key Concepts](#key-concepts-section)
-3. [General Guidelines](#general-guidelines-section)
-4. [Customer/Partner onboarding](#byova-onboarding-section)
-5. [Getting Started with BYoVA](#byova-getting-started-section)
-5.2. [Use cases](#communication-section)
-6. [Getting Started with Media Forking](#starting-media-forking-section)
-7. [mTLS authentication support](#mtls-authentication-support-section)
-8. [References](#references-section)
+# Webex Contact Center Provider Sample Code
 
-# Webex Contact Center Media service APIs <a name="media-service-api-section"></a>
-Provides interface to handle media related use cases for webex contact center platform consumers.
-There are different set of APIs for different use cases like Virtual agent, Real time transcripts(transcripts of the ongoing conversation between caller and human agent)
-This document captures details of these APIs.
-CCAI Platform offer below services as part of media service APIs-
-1. BYoVA(Bring your own Virtual)- Where a provider can integrate their Virtual agents within webex contact center platform. Communication between the webex contact center client and Virtual agent happens over gRPC.
-2. Real Time Media forking(Human agent - caller interaction)- Where a provider/customer can register a url with us where they want to receive the forked audio of the conversation between the agent(human agent) and caller.
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://openjdk.java.net/projects/jdk/17/)
+[![Maven](https://img.shields.io/badge/Maven-3.6+-blue.svg)](https://maven.apache.org/)
+
+> Sample code and implementation guide for integrating with Webex Contact Center Media Service APIs
+
+This repository provides sample implementations and comprehensive documentation for integrating with Webex Contact Center's Media Service APIs. It includes support for Bring Your Own Virtual Agent (BYoVA) and Real-Time Media Forking capabilities.
+
+## Table of Contents
+
+- [Background](#background)
+- [Install](#install)
+- [Usage](#usage)
+- [API](#api)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Background
+
+Webex Contact Center Media Service APIs provide interfaces to handle media-related use cases for platform consumers. The platform offers two main services:
+
+1. **BYoVA (Bring Your Own Virtual Agent)** - Integrate external virtual agents within Webex Contact Center platform via gRPC communication
+2. **Real-Time Media Forking** - Register URLs to receive forked audio from agent-caller conversations
 
 
-## Bring your Own Virtual Agent(BYoVA) <a name="byova-section"></a>
-The Bring Your Own Virtual Agent Initiative empowers Developers and AI vendors to seamlessly integrate external conversational interface(s) (like BOTs), with Webex Contact Center IVR.
+### Bring Your Own Virtual Agent (BYoVA)
 
-### What is a Voice Virtual Agent?
+The Bring Your Own Virtual Agent initiative empowers developers and AI vendors to seamlessly integrate external conversational interfaces (like BOTs) with Webex Contact Center IVR.
 
-To summarize, the voice virtual agent connects to a caller on a voice call and performs the following actions:
-   - Transcribes the caller's **speech to text** for AI processing.
-   - Utilizes **Natural Language Understanding** to identify the caller's intent.
-   - Maps the identified **intent** to an existing workflow (OR) uses **Generative AI** to create a text response.
-   - Converts the generated **text to speech** which is then prompted to the caller back.
-   - For escalated calls, provides the human agent with context by supplying the virtual agent's transcript or a summary.
-   - Post-call data, including Total Call Handled Time, Call Resolution, Caller Intent, etc. is available in Webex Analyzer.
+#### What is a Voice Virtual Agent?
 
-![VA-flow](./media-service-api/dialog-connector-simulator/src/main/resources/images/VACallFlowWithEscalation.jpg)
+A voice virtual agent connects to callers and performs the following actions:
 
-*Fig 1: A sample virtual agent call that is escalated to a human agent*
+- Transcribes caller **speech to text** for AI processing
+- Utilizes **Natural Language Understanding** to identify caller intent
+- Maps identified **intent** to existing workflows OR uses **Generative AI** to create responses
+- Converts generated **text to speech** for caller interaction
+- Provides human agents with context through transcripts or summaries for escalated calls
+- Captures post-call data (Call Handled Time, Resolution, Intent, etc.) in Webex Analyzer
 
-**Communication Protocol** - gRPC
-**Proto definition** - voiceVirtualagent.proto(path- dialogue-connector-simulator/src/main/proto/com/cisco/wcc/ccai/media/v1)
-Further details related to APIs, use cases and usage is defined in separate readme file located [Here](https://github.com/CiscoDevNet/webex-contact-center-provider-sample-code/tree/main/media-service-api/dialog-connector-simulator)
+![Voice Virtual Agent Flow](./media-service-api/dialog-connector-simulator/src/main/resources/images/VACallFlowWithEscalation.jpg)
 
-## Real Time Media Forking <a name="media-forking-section"></a>
-Media forking can leveraged by customers/partners to fork the audio of human agent-caller interaction to external url(registered with cisco).
-Communication Protocol - gRPC
-Proto defintion - conversationAudioForking.proto(path- dialogue-connector-simulator/src/main/proto/com/cisco/wcc/ccai/media/v1)
-Further details related to APIs, use cases and usage is defined in separate readme file located at [Here](https://github.com/CiscoDevNet/webex-contact-center-provider-sample-code/tree/main/media-service-api/dialog-connector-simulator)
+**Communication Protocol:** gRPC  
+**Proto Definition:** `voiceVirtualagent.proto` (located at `dialog-connector-simulator/src/main/proto/com/cisco/wcc/ccai/media/v1`)
 
-# Key Concepts Used <a name="key-concepts-section"></a>
-## Data source
-Data source is the communication endpoint between webex contact center and Virtual agent application/media forking server(running on vedor's cloud).
-## Bring Your Own Data Source(BYoDS)
-To register the communication endpoint or **Data Source** with Webex , Partners/Customers need to make use of BYoDS framework and set of APIs provided by this framework.
-More details about this framework and APIs are documented [here](https://developer.webex.com/webex-contact-center/docs/api/v1/data-sources/register-a-data-source).
-## Service apps
-BYoVA uses service apps as integration framework, to register the communication endpoint(url)/Data Source with webex.
-Service apps enable you to request admin permission to use Webex Contact Center REST APIs(BYoDS APIs in this case), reducing dependence on a single user's authorization and mitigating any associated risks to your app.
-To know more about service apps, please refer [deveoper-portal](https://developer.webex.com/admin/docs/service-apps).
-## Config and flow
-Config works as an integration on webex contact center platform where partners/customers configure their integrations with us. In case of of BYoVA, the config will be linked to service app and point to the data source registered for communication.
-Flow is the business/activity flow created by admin or flow designer via [control hub](https://admin.webex.com/wxcc/customer-experience/routing-flows/flows)
+### Real-Time Media Forking
 
-# General guidelines <a name="general-guidelines-section"></a>
-## Supported Audio Configurations
-- **Audio Format Supported**: _**wav**_
-- **Audio Sampling Rate**: _**16kHz/8KHz**_
-- **Language**: _**en-US**_
-- **Encoding Format**: _**Linear16/mulaw**_
-- Please note, we only support wav or raw audio files, 8/16kHz bit rate, single channel
+Media forking allows customers and partners to receive forked audio from human agent-caller interactions at registered external URLs.
 
-## gRPC Bi-directional Streaming Guidelines
-1. _onNext_, _onError_, and _onCompleted_ are gRPC methods defined in the [StreamObserver<T>](https://grpc.github.io/grpc-java/javadoc/io/grpc/stub/StreamObserver.html) interface for the Java language. The names of these methods and their API signatures vary due to language-specific idioms and implementations of the gRPC library. For more details, please refer to the [gRPC documentation](https://grpc.io/docs/languages/). 
-2. For each RPC, _onCompleted_ will be called from the VA Client side after all the data has been sent, and the RPC will be deemed half-closed. Once the VA Server has finished sending all the responses for the same RPC, _onCompleted_ must be called to fully close the RPC. 
-3. Each RPC must be closed by calling _onCompleted_ in the end except in cases of unexpected call termination scenarios.
+**Communication Protocol:** gRPC  
+**Proto Definition:** `conversationAudioForking.proto` (located at `dialog-connector-simulator/src/main/proto/com/cisco/wcc/ccai/media/v1`)
 
-# Customer/Partner onboarding <a name="byova-onboarding-section"></a>
-## Creation and authorization of service app
-1. To leverage set of use cases provided by Webex contact center as part of media service APIs, customers need to create a service app by going to dev portal.
-https://developer.webex.com/admin/docs/service-apps
-2. Post the service app creation, the app needs to be submitted for org admin approval.
-![service-app](./media-service-api/dialog-connector-simulator/src/main/resources/images/serviceAppAuthorization.png)
-**3**. Org admin needs to go to Control Hub portal and evaluate the validDomains provided in the service app for the respective use case.
-https://admin.webex.com/apps/serviceapps
-And approve the app if the provided information is validated.
-![authorization](./media-service-api/dialog-connector-simulator/src/main/resources/images/serviceAppAdminView.png).
+## Install
 
-**Note**: Please refer [link](https://developer.webex.com/admin/docs/service-apps) for more details, on service app creation
+### Prerequisites
 
-### Register data source
-Data source is nothing but the external url which would be used for the communication between contact center platform and Virtual agent/Media forking server(hosted on external cloud outside cisco boundary).
-This url must belong to the validDomains(fqdn) mentioned while service app creation.
-1. Once the service app is autorized, go to your service app(my-apps section) and generate token pair for the service app on developer portal by selecting the authorized org from drop down.
-![dataSource](./media-service-api/dialog-connector-simulator/src/main/resources/images/tokenGeneration.png)
-This generated token pair includes access token and refresh token.
-Refresh token can be used to refresh(valid for 90 days) the access token(which is valid for 14 days). Details of this process, along with API details is documented at [Here](https://developer.webex.com/create/docs/integrations#using-the-refresh-token)
-2. Keep these refresh and access token pair safe as this would be required for all data source related operations.
-3. Now copy the access token and register the data source either via developer portal or via API.
-- To do this via developer portal, use [link](https://developer.webex.com/webex-contact-center/docs/api/v1/data-sources).
-- To do this via API, below is the sample code
+1. **Java 17 or higher**
+   ```bash
+   java -version
+   ```
+
+2. **Apache Maven**
+   ```bash
+   mvn --version
+   ```
+   
+   If not installed:
+   ```bash
+   # macOS
+   brew install maven
+   
+   # Ubuntu/Debian
+   sudo apt-get install maven
+   
+   # CentOS/RHEL
+   sudo yum install maven
+   ```
+
+3. **Set JAVA_HOME (if needed)**
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 17)  # macOS
+   ```
+
+### Build and Run
+
+1. **Navigate to the simulator directory:**
+   ```bash
+   cd media-service-api/dialog-connector-simulator
+   ```
+
+2. **Build the application:**
+   ```bash
+   mvn clean install
+   ```
+
+3. **Run the server:**
+   ```bash
+   java -jar target/dialog-connector-simulator-1.0.0-SNAPSHOT-allinone.jar
+   ```
+
+   Expected output:
+   ```
+   2025-07-31 14:55:49 INFO  GrpcServer:37 - server started at port : 8086
+   ```
+
+## Usage
+
+### Local Development Setup
+
+For integration with Webex Contact Center, your local server needs HTTPS access. Use **ngrok** to create a secure tunnel:
+
+1. **Install ngrok:**
+   ```bash
+   # macOS
+   brew install ngrok
+   
+   # Or download from https://ngrok.com/download
+   ```
+
+2. **Start the ngrok tunnel** (in a separate terminal):
+   ```bash
+   ngrok http --upstream-protocol=http2 8086
+   ```
+
+3. **Copy the HTTPS URL** from ngrok output:
+   ```
+   Forwarding  https://abc123.ngrok-free.app -> http://localhost:8086
+   ```
+
+### Configuration
+
+Edit `media-service-api/dialog-connector-simulator/src/main/resources/config.properties`:
+
+```properties
+# Update with your ngrok HTTPS URL
+DATASOURCE_URL = https://your-ngrok-id.ngrok-free.app
+
+# Server settings (usually no changes needed)
+API_URL = localhost
+PORT = 8086
+USE_TLS = false
+
+# Audio settings
+AUDIO_ENCODING_TYPE = MULAW
+SAMPLE_RATE_HERTZ = 8000
+LANGUAGE_CODE = en-US
 ```
-curl --request POST \
-     --url https://webexapis.com/v1/dataSources \
-     --header 'Accept: application/json' \
-     --header 'Authorization: Bearer YOUR_TOKEN' \
-     --header 'Content-Type: application/json'
+
+**Important:** The `DATASOURCE_URL` must match your ngrok HTTPS URL for Webex Contact Center integration.
+
+### Key Concepts
+
+#### Data Source
+The communication endpoint between Webex Contact Center and Virtual Agent application/Media Forking server running on vendor's cloud.
+
+#### Bring Your Own Data Source (BYoDS)
+Framework for registering communication endpoints with Webex. Partners/Customers use BYoDS APIs to register their **Data Source**.  
+[Documentation](https://developer.webex.com/webex-contact-center/docs/api/v1/data-sources/register-a-data-source)
+
+#### Service Apps
+Integration framework used by BYoVA to register communication endpoints with Webex. Service apps enable admin permission requests for Webex Contact Center REST APIs, reducing single-user dependencies.  
+[Developer Portal](https://developer.webex.com/admin/docs/service-apps)
+
+#### Config and Flow
+- **Config**: Platform integration where partners/customers configure their integrations, linked to service apps and data sources
+- **Flow**: Business/activity flows created via [Control Hub](https://admin.webex.com/wxcc/customer-experience/routing-flows/flows)
+
+### Supported Audio Configurations
+
+- **Format**: WAV
+- **Sampling Rate**: 16kHz/8kHz  
+- **Language**: en-US
+- **Encoding**: Linear16/mulaw
+- **Channels**: Single channel only
+
+### gRPC Streaming Guidelines
+
+1. `onNext`, `onError`, and `onCompleted` are gRPC methods from [StreamObserver<T>](https://grpc.github.io/grpc-java/javadoc/io/grpc/stub/StreamObserver.html). Method names vary by language implementation.
+
+2. For each RPC, `onCompleted` is called from VA Client after sending all data (half-closed). VA Server must call `onCompleted` to fully close the RPC.
+
+3. Each RPC must be closed with `onCompleted` except during unexpected termination scenarios.
+
+### Service App Setup
+
+1. **Create Service App**  
+   Visit the [Developer Portal](https://developer.webex.com/admin/docs/service-apps) to create a service app.
+
+2. **Submit for Approval**  
+   Service app requires org admin approval after creation.
+   ![Service App Authorization](./media-service-api/dialog-connector-simulator/src/main/resources/images/serviceAppAuthorization.png)
+
+3. **Admin Approval**  
+   Org admin evaluates `validDomains` in [Control Hub](https://admin.webex.com/apps/serviceapps) and approves if validated.
+   ![Admin View](./media-service-api/dialog-connector-simulator/src/main/resources/images/serviceAppAdminView.png)
+
+### Data Source Registration
+
+1. **Generate Tokens**  
+   After service app authorization, generate token pair (access + refresh tokens) from developer portal.
+   ![Token Generation](./media-service-api/dialog-connector-simulator/src/main/resources/images/tokenGeneration.png)
+
+2. **Register Data Source**  
+   Register via [Developer Portal](https://developer.webex.com/webex-contact-center/docs/api/v1/data-sources) or API:
+
+   ```bash
+   curl --request POST \
+        --url https://webexapis.com/v1/dataSources \
+        --header 'Accept: application/json' \
+        --header 'Authorization: Bearer YOUR_TOKEN' \
+        --header 'Content-Type: application/json' \
+        --data '{
+          "schemaId": "5397013b-7920-4ffc-807c-e8a3e0a18f43",
+          "url": "example.com/url1",
+          "audience": "audience", 
+          "subject": "VA",
+          "nonce": "65793b88-ad6e-4ec8-929e-b408038251e3",
+          "tokenLifeMinutes": "1440"
+        }'
+   ```
+
+## Examples
+
+### BYoVA Implementation
+
+The Dialog Connector Simulator demonstrates a complete **gRPC Server Application** (`src/main/java/com/cisco/wccai/grpc/server/GrpcServer.java`) that handles requests from Webex Contact Center.
+
+Key implementation files:
+- **Server**: `src/main/java/com/cisco/wccai/grpc/server/VoiceVAImpl.java`
+- **Client**: `src/main/java/com/cisco/wccai/grpc/client/VoiceVAClient.java`
+- **Proto Schema**: [Voice Virtual Agent Schema](https://github.com/webex/dataSourceSchemas/tree/main/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto)
+
+#### Session Start Flow
+
+```java
+// Client sends SESSION_START
+requestObserver.onNext(VoiceVARequest
+    .newBuilder()
+    .setEventInput(EventInput
+        .newBuilder()
+        .setEventType(EventInput.EventType.SESSION_START)
+        .build())
+    .setConversationId(conversationId)
+    .build());
+requestObserver.onCompleted();
 ```
-Request body-
+
+#### Audio Response Flow
+
+```java
+// Server sends audio prompt response
+Prompt prompt = Prompt.newBuilder()
+    .setText(text)
+    .setAudioContent(ByteString.copyFrom(audioBytes))
+    .setIsBargeInEnabled(bargeInEnabled)
+    .build();
+
+VoiceVAResponse response = VoiceVAResponse.newBuilder()
+    .addPrompts(prompt)
+    .addOutputEvents(OutputEvent.newBuilder()
+        .setEventType(OutputEvent.EventType.END_OF_INPUT)
+        .build())
+    .build();
+
+responseObserver.onNext(response);
+responseObserver.onCompleted();
+```
+
+#### Transfer to Agent
+
+```java
+// Send TRANSFER_TO_AGENT event (triggered by DTMF "9" in simulator)
+VoiceVAResponse transferResponse = VoiceVAResponse.newBuilder()
+    .addOutputEvents(OutputEvent.newBuilder()
+        .setEventType(OutputEvent.EventType.TRANSFER_TO_AGENT)
+        .build())
+    .build();
+responseObserver.onNext(transferResponse);
+responseObserver.onCompleted();
+```
+
+### Media Forking Implementation
+
+The Dialog Connector includes Media Forking capabilities for real-time agent-caller audio access.
+
+**Server Implementation**: `src/main/java/com/cisco/wccai/grpc/server/ConversationAudioForkImpl.java`  
+**Proto Schema**: `src/main/proto/com/cisco/wcc/ccai/media/v1/conversationaudioforking.proto`
+
+### Health Check Endpoint
+
+Each provider endpoint should expose health monitoring APIs:
+
+```
+GET https://<Service-Endpoint>/<Service-Name>/v1/ping
+```
+
+Response:
+```json
+{
+  "serviceName": "<Service Name>",
+  "serviceType": "REQUIRED", 
+  "serviceState": "online",
+  "message": "<Service Name> is ONLINE",
+  "lastUpdated": "2021-01-22T12:24:37.382Z"
+}
+```
+
+See `src/main/proto/com/cisco/wcc/ccai/v1/health.proto` for the health check protocol definition.
+
+## Troubleshooting
+
+### Build Issues
+
+**Protobuf Generation Errors**  
+If you encounter "cannot find symbol" errors for `VoiceVirtualAgentGrpc` or `ConversationAudioGrpc` classes:
 ```
 {
   "schemaId": "5397013b-7920-4ffc-807c-e8a3e0a18f43",
@@ -396,6 +606,70 @@ Response:
 "lastUpdated": "2021-01-22T12:24:37.382Z",
 }
 ```
+
+# Troubleshooting <a name="troubleshooting-section"></a>
+
+## Build Issues
+
+**Protobuf Generation Errors**  
+If you encounter "cannot find symbol" errors for `VoiceVirtualAgentGrpc` or `ConversationAudioGrpc` classes:
+
+1. Try the standard build process first:
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 17)  # macOS
+   mvn clean install
+   ```
+
+2. If the build still fails, run the protobuf generation explicitly:
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 17)  # macOS
+   cd media-service-api/dialog-connector-simulator
+   mvn clean
+   mvn protobuf:compile protobuf:compile-custom
+   mvn compile
+   ```
+
+1. Try the standard build process first:
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 17)  # macOS
+   mvn clean install
+   ```
+
+2. If the build still fails, run the protobuf generation explicitly:
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 17)  # macOS
+   cd media-service-api/dialog-connector-simulator
+   mvn clean
+   mvn protobuf:compile protobuf:compile-custom
+   mvn compile
+   ```
+
+**Java Version Mismatch**
+If you encounter compilation errors:
+1. Verify Java 17 is installed: `java -version`
+2. Set JAVA_HOME explicitly:
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 17)  # macOS
+   mvn clean install
+   ```
+3. Check Maven is using correct Java version: `mvn --version`
+
+## Runtime Issues
+
+**JWT Claims Validation Failed**
+- **Datasource URL Mismatch** (Most Common): Update `DATASOURCE_URL` in `config.properties` to match your current ngrok HTTPS URL
+- **Missing Required JWT Claims**: Ensure your JWT token contains required claims (`iss`, `aud`, `sub`, `jti`, `com.cisco.datasource.url`)
+
+**Connection Issues**
+- **ngrok URL Changes**: Each time you restart ngrok, update the `DATASOURCE_URL` in your configuration
+- **HTTPS Required**: Webex Contact Center requires HTTPS endpoints - local HTTP won't work
+- **Port Conflicts**: Default port 8086 - change in `config.properties` if needed
+
+**Server Won't Start**
+1. Check port availability: `lsof -i :8086`
+2. Verify JAR was built: `ls -la media-service-api/dialog-connector-simulator/target/*.jar`
+3. Check Java version: Server requires Java 17+
+
 # mTLS authentication support <a name="mtls-authentication-support-section"></a>
 mTLS (Mutual TLS) is an extension of TLS (Transport Layer Security) that ensures both the `Webex CCAI` (client) and `Dialog Connector` (server) authenticate each other during communication. 
 Unlike standard TLS, which only authenticates the `Dialog Connector` to the `Webex CCAI`, mTLS requires both parties to present and validate certificates, providing bidirectional authentication.
