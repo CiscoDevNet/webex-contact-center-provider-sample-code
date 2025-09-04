@@ -410,5 +410,5 @@ Refer to [wiki](mTLSAuthentication.md) for more details on mTLS authentication s
 4. **Schema defintions** - https://github.com/webex/dataSourceSchemas/tree/main/Services
 5. **Sample Code** -
 The Dialog Connector Simulator is a sample code that demonstrates how to integrate an external conversational interface with Webex Contact Center IVR.
-Refer to the [Dialog Connector Simulator Sample Code](https://github.com/CiscoDevNet/webex-contact-center-ai-sample-code/tree/main/provider-api/dialog-connector-simulator).
+Refer to the [Dialog Connector Simulator Sample Code](./media-service-api/dialog-connector-simulator).
 For the interface definition see `src/main/proto/com/cisco/wcc/ccai/media/v1/*`.
