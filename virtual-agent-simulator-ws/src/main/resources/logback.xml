@@ -1,0 +1,34 @@
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                <maxLength>2048</maxLength>
+                <shortenedClassNameLength>40</shortenedClassNameLength>
+                <rootCauseFirst>true</rootCauseFirst>
+            </throwableConverter>
+            <includeMdcKeyName>conversation_id</includeMdcKeyName>
+            <includeMdcKeyName>org_id</includeMdcKeyName>
+            <includeMdcKeyName>logType</includeMdcKeyName>
+            <includeMdcKeyName>trackingId</includeMdcKeyName>
+            <fieldNames>
+                <message>[ignore]</message>
+            </fieldNames>
+            <provider class="net.logstash.logback.composite.loggingevent.LoggingEventPatternJsonProvider">
+                <pattern>{"message":"%.-3072msg"}</pattern>
+            </provider>
+        </encoder>
+    </appender>
+
+    <logger name="com.cisco.wccai" level="info" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger name="io.netty" level="info" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
