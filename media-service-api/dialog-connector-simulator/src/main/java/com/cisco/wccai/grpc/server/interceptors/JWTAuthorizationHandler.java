@@ -28,7 +28,6 @@ public class JWTAuthorizationHandler implements AuthorizationHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(JWTAuthorizationHandler.class);
     private static final Properties PROPERTIES = LoadProperties.loadProperties();
 
-    private static final String IDENTITY_BROKER_URL = "https://idbrokerbts.webex.com";
     private final String VALID_DATASOURCE_URL = PROPERTIES.getProperty("DATASOURCE_URL", "https://dialog-connector-simulator.intgus1.ciscoccservice.com:443");
     private static final String DATASOURCE_URL_KEY = "com.cisco.datasource.url";
     private static final String DATASOURCE_SCHEMA_KEY = "com.cisco.datasource.schema.uuid";
@@ -53,7 +52,20 @@ public class JWTAuthorizationHandler implements AuthorizationHandler {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
             var tokenWithClaimsSet = signedJWT.getJWTClaimsSet();
-            PublicKeyResponse publicKeyResponse = fetchPublicKeys(tokenWithClaimsSet.getIssuer());
+            
+            // SECURITY: Validate issuer BEFORE fetching keys to prevent SSRF attacks
+            String issuer = tokenWithClaimsSet.getIssuer();
+            if (issuer == null || issuer.isEmpty()) {
+                LOGGER.error("JWT token missing 'iss' claim");
+                throw new AccessTokenException("JWT token missing 'iss' claim");
+            }
+            
+            if (!LIST_VALID_ISSUERS.contains(issuer)) {
+                LOGGER.error("Invalid issuer: {}. Must be one of: {}", issuer, LIST_VALID_ISSUERS);
+                throw new AccessTokenException("Invalid issuer: " + issuer);
+            }
+            
+            PublicKeyResponse publicKeyResponse = fetchPublicKeys(issuer);
             boolean isJWTTokenSignatureValid = publicKeyResponse.getKeys().stream()
                     .anyMatch(key -> {
                         try {
@@ -78,6 +90,9 @@ public class JWTAuthorizationHandler implements AuthorizationHandler {
             }
             LOGGER.error("JWT token signature not valid");
             throw new AccessTokenException("JWT token signature not valid");
+        } catch (AccessTokenException e) {
+            // Re-throw AccessTokenException to preserve the specific error message
+            throw e;
         } catch (Exception e) {
             LOGGER.error("Token validation failed", e);
             throw new AccessTokenException("Token validation failed", e);
@@ -98,7 +113,8 @@ public class JWTAuthorizationHandler implements AuthorizationHandler {
                 return cachedPublicKeyResponse.get(issuerUrl);
             }
 
-            String url = (issuerUrl == null ? (IDENTITY_BROKER_URL + "/idb") : issuerUrl) + "/oauth2/v2/keys/verificationjwk";
+            // issuerUrl is guaranteed to be non-null and validated at this point
+            String url = issuerUrl + "/oauth2/v2/keys/verificationjwk";
             HttpURLConnection httpClient = (HttpURLConnection) new URL(url).openConnection();
             httpClient.setRequestMethod("GET");
 
