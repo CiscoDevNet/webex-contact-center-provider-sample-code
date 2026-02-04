@@ -54,6 +54,9 @@ rpc ProcessCallerInput(stream VoiceVARequest) returns (stream VoiceVAResponse)
 [VoiceVARequest](https://github.com/webex/dataSourceSchemas/blob/098583adedf9a811c0170e45d986a57728773628/Services/VoiceVirtualAgent/5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L15) is the request paramter, which is used to send caller audio/DTMF data/Input event data to Virtual agent application.
 
 [VoiceVAResponse](https://github.com/webex/dataSourceSchemas/blob/098583adedf9a811c0170e45d986a57728773628/Services/VoiceVirtualAgent/5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L79) is the response received from Virtual agent application based on VoiceVARequest data.
+
+**Note:** For streaming audio, each audio chunk must not exceed 64 KB (65,536 bytes).
+
 Details of the service are mentioned [here](https://github.com/webex/dataSourceSchemas/tree/main/Services/VoiceVirtualAgent/5397013b-7920-4ffc-807c-e8a3e0a18f43).
 
 ## Real Time Media Forking <a name="media-forking-section"></a>
@@ -77,4 +80,3 @@ rpc StreamConversationAudio(stream ConversationAudioForkingRequest) returns (str
 
 **Proto documentations** : 1. https://github.com/webex/dataSourceSchemas/tree/main/Services/VoiceVirtualAgent/5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/Docs
                            2. https://github.com/webex/dataSourceSchemas/tree/main/Services/AudioForking/523e1b7f-4693-47bc-b84e-a7b7a505fb0b/Proto/Docs
-
