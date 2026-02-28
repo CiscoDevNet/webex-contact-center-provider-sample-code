@@ -5,6 +5,8 @@ syntax = "proto3";
 
 package com.cisco.wcc.ccai.v1;
 
+// mc]vn option java_outer_classname = "HealthCheckRequest";
+
 /*
  Represents the Input Request for health check
 */

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class AuthorizationServerInterceptor implements ServerInterceptor {
+public class  AuthorizationServerInterceptor implements ServerInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationServerInterceptor.class);
     @Getter
@@ -23,6 +23,14 @@ public class AuthorizationServerInterceptor implements ServerInterceptor {
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> serverCall, Metadata metadata,
                                                                  ServerCallHandler<ReqT, RespT> serverCallHandler) {
+
+        // Skip authorization for gRPC reflection service and Health service
+        String methodName = serverCall.getMethodDescriptor().getFullMethodName();
+        if (methodName.startsWith("grpc.reflection.v1alpha.ServerReflection") || 
+            methodName.startsWith("grpc.reflection.v1.ServerReflection") ||
+            methodName.startsWith("com.cisco.wcc.ccai.v1.Health")) {
+            return serverCallHandler.startCall(serverCall, metadata);
+        }
 
         String trackingId = metadata.get(Metadata.Key.of(TRACKING_ID, Metadata.ASCII_STRING_MARSHALLER));
         updateMdcContext(TRACKING_ID, trackingId);

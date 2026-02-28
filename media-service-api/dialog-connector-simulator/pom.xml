@@ -15,19 +15,50 @@
         <protoc.version>3.25.3</protoc.version>
         <jetty.alpn.agent.version>2.0.10</jetty.alpn.agent.version>
         <junit.jupiter.version>5.6.0</junit.jupiter.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <jackson.version>2.15.3</jackson.version>
+        <lombok.version>1.18.32</lombok.version>
     </properties>
+
+
+    <!-- Distribution Management Configuration -->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <!-- Repository Configuration -->
     <repositories>
         <repository>
             <id>central</id>
             <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>maven-central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
         </repository>
         <repository>
             <id>os-maven-plugin-repo</id>
-            <url>https://mvnrepository.com/artifact/kr.motd.maven/os-maven-plugin</url>
+            <url>https://repo1.maven.org/maven2/</url>
         </repository>
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
@@ -71,6 +102,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-services</artifactId>
+            <version>${grpc.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
@@ -99,7 +136,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
+            <version>${slf4j.version}</version>
         </dependency>
 
         <dependency>
@@ -111,19 +148,37 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.14.0</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.36</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.20.0</version>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.32</version>
-            <scope>compile</scope>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+
+        <!-- Google Cloud Storage for saving audio files -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>2.38.0</version>
+        </dependency>
+
+        <!-- Netty BoringSSL for TLS/SSL support -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>2.0.65.Final</version>
         </dependency>
 
     </dependencies>
@@ -142,7 +197,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
                     <release>${maven.compiler.release}</release>
                     <showDeprecation>true</showDeprecation>
@@ -152,7 +207,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.32</version>
+                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -185,6 +240,7 @@
                 <configuration>
                     <mainClass>com.cisco.wccai.grpc.server.GrpcServer</mainClass>
                     <classpathScope>runtime</classpathScope>
+                    <cleanupDaemonThreads>false</cleanupDaemonThreads>
                 </configuration>
             </plugin>
             <plugin>

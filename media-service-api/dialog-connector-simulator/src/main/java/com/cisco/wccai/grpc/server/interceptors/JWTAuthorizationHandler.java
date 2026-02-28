@@ -29,10 +29,12 @@ public class JWTAuthorizationHandler implements AuthorizationHandler {
     private static final Properties PROPERTIES = LoadProperties.loadProperties();
 
     private static final String IDENTITY_BROKER_URL = "https://idbrokerbts.webex.com";
-    private final String VALID_DATASOURCE_URL = PROPERTIES.getProperty("DATASOURCE_URL", "https://dialog-connector-simulator.intgus1.ciscoccservice.com:443");
+    private final String VALID_DATASOURCE_URL = System.getenv("DATASOURCE_URL") != null ? 
+        System.getenv("DATASOURCE_URL") : 
+        PROPERTIES.getProperty("DATASOURCE_URL", "https://dialog-connector-simulator.intgus1.ciscoccservice.com:443");
     private static final String DATASOURCE_URL_KEY = "com.cisco.datasource.url";
     private static final String DATASOURCE_SCHEMA_KEY = "com.cisco.datasource.schema.uuid";
-    private static final String VALID_DATASOURCE_SCHEMA_UUID = "5397013b-7920-4ffc-807c-e8a3e0a18f43";
+    private static final String VALID_DATASOURCE_SCHEMA_UUID = "523e1b7f-4693-47bc-b84e-a7b7a505fb0b";
     private static final List<String> LIST_VALID_ISSUERS = List.of("https://idbrokerbts.webex.com/idb", "https://idbrokerbts-eu.webex.com/idb", "https://idbroker.webex.com/idb", "https://idbroker-eu.webex.com/idb", "https://idbroker-b-us.webex.com/idb", "https://idbroker-ca.webex.com/idb");;
 
     private final static HashMap<String, PublicKeyResponse> cachedPublicKeyResponse = new HashMap<>();
