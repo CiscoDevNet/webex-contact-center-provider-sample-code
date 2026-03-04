@@ -44,8 +44,8 @@ public class PublicKeyResponse {
                     "\"e\":\"" + e + "\"," +
                     "\"use\":\"" + use + "\"," +
                     "\"kid\":\"" + kid + "\"," +
-                    "\"n\":\"" + n + "\"," +
-                    "\"alg\":\"" + alg + "\"" +
+                    "\"n\":\"" + n + "\"" +
+                    (alg != null ? ",\"alg\":\"" + alg + "\"" : "") +
                     "}";
         }
     }
