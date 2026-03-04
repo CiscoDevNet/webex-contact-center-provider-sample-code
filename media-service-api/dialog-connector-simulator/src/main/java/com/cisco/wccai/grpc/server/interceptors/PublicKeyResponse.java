@@ -1,5 +1,6 @@
 package com.cisco.wccai.grpc.server.interceptors;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PublicKeyResponse {
 
     @JsonProperty("keys")
@@ -16,6 +18,7 @@ public class PublicKeyResponse {
 
     @Getter
     @Setter
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Key {
         @JsonProperty("kty")
         private String kty;
@@ -32,15 +35,22 @@ public class PublicKeyResponse {
         @JsonProperty("n")
         private String n;
 
+        @JsonProperty("alg")
+        private String alg;
+
         @Override
         public String toString() {
-            return "{" +
-                    "\"kty\":\"" + kty + "\"," +
-                    "\"e\":\"" + e + "\"," +
-                    "\"use\":\"" + use + "\"," +
-                    "\"kid\":\"" + kid + "\"," +
-                    "\"n\":\"" + n + "\"" +
-                    "}";
+            StringBuilder sb = new StringBuilder("{");
+            sb.append("\"kty\":\"").append(kty).append("\",");
+            sb.append("\"e\":\"").append(e).append("\",");
+            sb.append("\"use\":\"").append(use).append("\",");
+            sb.append("\"kid\":\"").append(kid).append("\",");
+            sb.append("\"n\":\"").append(n).append("\"");
+            if (alg != null) {
+                sb.append(",\"alg\":\"").append(alg).append("\"");
+            }
+            sb.append("}");
+            return sb.toString();
         }
     }
 }

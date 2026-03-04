@@ -3,7 +3,7 @@
 > **Note:** This guide uses `<REPO_ROOT>` to represent the directory where you cloned the repository. Replace this with your actual path (e.g., `/home/user/projects` or `C:\Users\username\projects`).
 
 **Feature:** Real-Time Media Streaming for Customer-Agent Conversations  
-**Last Updated:** February 26, 2026  
+**Last Updated:** March 04, 2026  
 **Audience:** Developers and Partners
 
 ---
@@ -1799,18 +1799,77 @@ Should return `{"status": "SERVING"}` without any token.
 - Don't expose gRPC endpoint without authentication
 - Consider additional network-level security (VPC, firewall rules)
 
+### Recent Improvements to JWS Token Verification
+
+The sample code has been enhanced to handle real-world scenarios encountered by customers:
+
+**1. Forward-Compatible Field Handling**
+
+Common Identity may add new fields to the public key response (such as the `alg` field). The code now:
+- Parses the `alg` field when present
+- Ignores unknown fields using `@JsonIgnoreProperties(ignoreUnknown = true)`
+- **Best Practice:** Always design your integration to ignore unknown fields - this is considered a non-breaking change in API design
+
+**2. Rate Limit Handling with Retry-After Header and Exponential Backoff**
+
+The public key endpoint may return HTTP 429 (Too Many Requests) during high load. The code now implements:
+- **Retry-After Header:** Honors the `Retry-After` header when present (priority)
+- **Exponential Backoff Fallback:** Uses exponential backoff (1s → 2s → 4s) if no `Retry-After` header
+- **Max Attempts:** Up to 3 retry attempts
+- **Fallback:** Returns cached public keys if retries are exhausted
+- **Logging:** Detailed logs for retry attempts, headers, and rate limit events
+
+Example retry sequence with `Retry-After` header:
+```
+Attempt 1: Request → 429 received → Retry-After: 5 → Wait 5 seconds
+Attempt 2: Request → 429 received → Retry-After: 10 → Wait 10 seconds  
+Attempt 3: Request → 429 received → Return cached keys or fail
+```
+
+Example retry sequence without `Retry-After` header (exponential backoff):
+```
+Attempt 1: Request → 429 received → Wait 1 second
+Attempt 2: Request → 429 received → Wait 2 seconds  
+Attempt 3: Request → 429 received → Wait 4 seconds → Return cached keys or fail
+```
+
+**3. Cache-Control Header Support**
+
+The public key endpoint now returns a `Cache-Control` header with `max-age` directive. The code:
+- Parses the `Cache-Control` header to extract cache duration
+- Uses the server-specified cache duration instead of hardcoded 60 minutes
+- Falls back to default duration if header is missing or invalid
+- **Example:** `Cache-Control: public, max-age=21600` → Cache for 6 hours
+
+**Configuration:**
+```java
+// Retry configuration
+private static final int MAX_RETRY_ATTEMPTS = 3;
+private static final long INITIAL_RETRY_DELAY_MS = 1000; // 1 second
+
+// Default cache duration (used if Cache-Control header is missing)
+private static final long CACHE_DURATION = TimeUnit.MINUTES.toMillis(60);
+```
+
+**Why These Changes Matter:**
+
+- **Resilience:** Your integration won't break when Common Identity adds new fields
+- **Reliability:** Handles rate limiting gracefully without failing requests
+- **Efficiency:** Respects server-specified cache durations for optimal performance (6 hours vs 60 minutes)
+- **Production-Ready:** Based on real customer issues and best practices
+
 ### Implementation Details
 
 **Key Classes:**
 
 - **`AuthorizationServerInterceptor`** - Intercepts all gRPC calls
-- **`JWTAuthorizationHandler`** - Validates JWS tokens
+- **`JWTAuthorizationHandler`** - Validates JWS tokens with retry logic and cache management
 - **`AuthorizationHandlerFactory`** - Routes to appropriate handler
-- **`PublicKeyResponse`** - Caches Cisco's public keys
+- **`PublicKeyResponse`** - Caches Cisco's public keys with forward-compatible field handling
 
 **Dependencies:**
 - `nimbus-jose-jwt` - JWT parsing and validation
-- `jackson-databind` - JSON parsing
+- `jackson-databind` - JSON parsing with unknown field handling
 
 ---
 

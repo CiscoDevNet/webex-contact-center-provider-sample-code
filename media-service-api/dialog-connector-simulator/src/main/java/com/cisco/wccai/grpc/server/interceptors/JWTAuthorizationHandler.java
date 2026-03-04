@@ -40,6 +40,8 @@ public class JWTAuthorizationHandler implements AuthorizationHandler {
     private final static HashMap<String, PublicKeyResponse> cachedPublicKeyResponse = new HashMap<>();
     private static final long CACHE_DURATION = TimeUnit.MINUTES.toMillis(60); // Cache duration of 60 minutes
     private static final ReentrantLock cacheLock = new ReentrantLock();
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+    private static final long INITIAL_RETRY_DELAY_MS = 1000; // 1 second
 
     public JWTAuthorizationHandler() {
         LOGGER.info("JWTAuthorizationHandler initialized with datasource URL: {}", VALID_DATASOURCE_URL);
@@ -101,40 +103,135 @@ public class JWTAuthorizationHandler implements AuthorizationHandler {
             }
 
             String url = (issuerUrl == null ? (IDENTITY_BROKER_URL + "/idb") : issuerUrl) + "/oauth2/v2/keys/verificationjwk";
-            HttpURLConnection httpClient = (HttpURLConnection) new URL(url).openConnection();
-            httpClient.setRequestMethod("GET");
+            
+            // Retry logic with Retry-After header support and exponential backoff
+            int attempt = 0;
+            long retryDelay = INITIAL_RETRY_DELAY_MS;
+            
+            while (attempt < MAX_RETRY_ATTEMPTS) {
+                HttpURLConnection httpClient = (HttpURLConnection) new URL(url).openConnection();
+                httpClient.setRequestMethod("GET");
 
-            int responseCode = httpClient.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                LOGGER.info("Public keys fetched successfully");
-                try (InputStream inputStream = httpClient.getInputStream()) {
-                    byte[] responseBytes = inputStream.readAllBytes();
-                    String response = new String(responseBytes);
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    var publicKeyResponse = objectMapper.readValue(response, PublicKeyResponse.class);
-                    publicKeyResponse.setExpirationAt(currentTime + CACHE_DURATION);
-                    cachedPublicKeyResponse.put(issuerUrl, publicKeyResponse);
-                    return publicKeyResponse;
-                }
-            } else if (responseCode == 429) {
-                if (cachedPublicKeyResponse.getOrDefault(issuerUrl, null) != null) {
-                    LOGGER.info("Rate limit exceeded, returning cached public keys");
-                    return cachedPublicKeyResponse.get(issuerUrl);
+                int responseCode = httpClient.getResponseCode();
+                
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    LOGGER.info("Public keys fetched successfully on attempt {}", attempt + 1);
+                    try (InputStream inputStream = httpClient.getInputStream()) {
+                        byte[] responseBytes = inputStream.readAllBytes();
+                        String response = new String(responseBytes);
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        var publicKeyResponse = objectMapper.readValue(response, PublicKeyResponse.class);
+                        
+                        // Parse Cache-Control header for cache duration
+                        String cacheControl = httpClient.getHeaderField("Cache-Control");
+                        long cacheDuration = parseCacheDuration(cacheControl);
+                        publicKeyResponse.setExpirationAt(currentTime + cacheDuration);
+                        
+                        cachedPublicKeyResponse.put(issuerUrl, publicKeyResponse);
+                        return publicKeyResponse;
+                    }
+                } else if (responseCode == 429) {
+                    attempt++;
+                    
+                    if (attempt >= MAX_RETRY_ATTEMPTS) {
+                        // Max retries reached, return cached keys if available
+                        if (cachedPublicKeyResponse.getOrDefault(issuerUrl, null) != null) {
+                            LOGGER.info("Max retry attempts reached. Returning cached public keys");
+                            return cachedPublicKeyResponse.get(issuerUrl);
+                        } else {
+                            throw new AccessTokenException("Rate limit exceeded after " + MAX_RETRY_ATTEMPTS + " attempts and no cached public keys available");
+                        }
+                    }
+                    
+                    // Check for Retry-After header (priority over exponential backoff)
+                    String retryAfterHeader = httpClient.getHeaderField("Retry-After");
+                    long waitTimeMs;
+                    
+                    if (retryAfterHeader != null && !retryAfterHeader.isEmpty()) {
+                        // Retry-After can be in seconds (integer) or HTTP date format
+                        // We'll handle the seconds format (most common for 429)
+                        try {
+                            long retryAfterSeconds = Long.parseLong(retryAfterHeader);
+                            waitTimeMs = TimeUnit.SECONDS.toMillis(retryAfterSeconds);
+                            LOGGER.warn("Rate limit (429) received on attempt {}. Retry-After header specifies {} seconds ({} ms)", 
+                                       attempt, retryAfterSeconds, waitTimeMs);
+                        } catch (NumberFormatException e) {
+                            // If not a number, fall back to exponential backoff
+                            LOGGER.warn("Rate limit (429) received on attempt {}. Retry-After header not parseable, using exponential backoff: {} ms", 
+                                       attempt, retryDelay);
+                            waitTimeMs = retryDelay;
+                        }
+                    } else {
+                        // No Retry-After header, use exponential backoff
+                        LOGGER.warn("Rate limit (429) received on attempt {}. No Retry-After header, using exponential backoff: {} ms", 
+                                   attempt, retryDelay);
+                        waitTimeMs = retryDelay;
+                    }
+                    
+                    // Wait before retrying
+                    try {
+                        Thread.sleep(waitTimeMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new AccessTokenException("Retry interrupted", ie);
+                    }
+                    
+                    // Update exponential backoff delay for next iteration (only used if no Retry-After header)
+                    retryDelay *= 2;
+                    
                 } else {
-                    throw new AccessTokenException("Rate limit exceeded and no cached public keys available");
-                }
-            } else {
-                try (InputStream errorStream = httpClient.getErrorStream()) {
-                    byte[] errorBytes = errorStream.readAllBytes();
-                    String errorMessage = new String(errorBytes);
-                    throw new RuntimeException("Failed : HTTP error code : " + responseCode + " and error message: " + errorMessage);
+                    try (InputStream errorStream = httpClient.getErrorStream()) {
+                        byte[] errorBytes = errorStream.readAllBytes();
+                        String errorMessage = new String(errorBytes);
+                        throw new RuntimeException("Failed : HTTP error code : " + responseCode + " and error message: " + errorMessage);
+                    }
                 }
             }
+            
+            // Should not reach here, but handle gracefully
+            throw new AccessTokenException("Failed to fetch public keys after retries");
+            
         } catch (Exception e) {
             LOGGER.error("Error while fetching public keys", e);
-            throw new AccessTokenException("Error while fetching public keys");
+            throw new AccessTokenException("Error while fetching public keys", e);
         } finally {
             cacheLock.unlock();
+        }
+    }
+
+    /**
+     * Parses the Cache-Control header to extract cache duration.
+     * Looks for max-age directive and converts to milliseconds.
+     * Falls back to default CACHE_DURATION if header is missing or invalid.
+     * 
+     * @param cacheControl The Cache-Control header value
+     * @return Cache duration in milliseconds
+     */
+    private long parseCacheDuration(String cacheControl) {
+        if (cacheControl == null || cacheControl.isEmpty()) {
+            LOGGER.debug("No Cache-Control header found, using default cache duration: {} minutes", TimeUnit.MILLISECONDS.toMinutes(CACHE_DURATION));
+            return CACHE_DURATION;
+        }
+        
+        try {
+            // Parse Cache-Control header for max-age directive
+            // Example: "public, max-age=3600" or "max-age=3600, public"
+            String[] directives = cacheControl.split(",");
+            for (String directive : directives) {
+                String trimmed = directive.trim();
+                if (trimmed.startsWith("max-age=")) {
+                    String maxAgeValue = trimmed.substring("max-age=".length()).trim();
+                    long maxAgeSeconds = Long.parseLong(maxAgeValue);
+                    long cacheDurationMs = TimeUnit.SECONDS.toMillis(maxAgeSeconds);
+                    LOGGER.info("Parsed Cache-Control max-age: {} seconds ({} minutes)", maxAgeSeconds, TimeUnit.SECONDS.toMinutes(maxAgeSeconds));
+                    return cacheDurationMs;
+                }
+            }
+            LOGGER.debug("No max-age directive found in Cache-Control header, using default cache duration");
+            return CACHE_DURATION;
+        } catch (NumberFormatException e) {
+            LOGGER.warn("Failed to parse max-age from Cache-Control header: {}. Using default cache duration", cacheControl, e);
+            return CACHE_DURATION;
         }
     }
 
