@@ -1,5 +1,6 @@
 package com.cisco.wccai.grpc.server.interceptors;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PublicKeyResponse {
 
     @JsonProperty("keys")
@@ -32,6 +34,9 @@ public class PublicKeyResponse {
         @JsonProperty("n")
         private String n;
 
+        @JsonProperty("alg")
+        private String alg;
+
         @Override
         public String toString() {
             return "{" +
@@ -40,6 +45,7 @@ public class PublicKeyResponse {
                     "\"use\":\"" + use + "\"," +
                     "\"kid\":\"" + kid + "\"," +
                     "\"n\":\"" + n + "\"" +
+                    (alg != null ? ",\"alg\":\"" + alg + "\"" : "") +
                     "}";
         }
     }
