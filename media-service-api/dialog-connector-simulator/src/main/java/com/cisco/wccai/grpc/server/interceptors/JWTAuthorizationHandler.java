@@ -132,8 +132,15 @@ public class JWTAuthorizationHandler implements AuthorizationHandler {
 
     private boolean validateJWT(String jwtString, String jwkString) throws JOSEException, ParseException {
         JWK jwk = JWK.parse(jwkString);
-        RSAPublicKey publicKey = (RSAPublicKey) jwk.toRSAKey().toPublicKey();
         SignedJWT signedJWT = SignedJWT.parse(jwtString);
+
+        if (jwk.getAlgorithm() != null && !jwk.getAlgorithm().equals(signedJWT.getHeader().getAlgorithm())) {
+            LOGGER.warn("Algorithm mismatch - JWT header: {}, JWKS key: {}",
+                    signedJWT.getHeader().getAlgorithm(), jwk.getAlgorithm());
+            return false;
+        }
+
+        RSAPublicKey publicKey = (RSAPublicKey) jwk.toRSAKey().toPublicKey();
         JWSVerifier verifier = new RSASSAVerifier(publicKey);
         boolean verified = signedJWT.verify(verifier);
         if (verified) {
