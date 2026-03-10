@@ -7,7 +7,6 @@ package com.cisco.wcc.ccai.media.v1;
 
 import "com/cisco/wcc/ccai/media/v1/common/byova_common.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/struct.proto";
 
 /*
  Represents the Request format to be sent by the client to communicate with VA(server)

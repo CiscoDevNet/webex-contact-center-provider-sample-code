@@ -998,17 +998,17 @@ grpcurl :8086 com.cisco.wcc.ccai.media.v1.ConversationAudio/StreamConversationAu
 grpcurl -plaintext :8086 list
 ```
 
+**Expected Response:**
+```
+com.cisco.wcc.ccai.media.v1.ConversationAudio
+com.cisco.wcc.ccai.media.v1.VoiceVirtualAgent
+grpc.reflection.v1alpha.ServerReflection
+```
+
 **Note:** 
 - Health checks always use port 8080 (plaintext, no certificate)
 - Main audio services use port 8086 (TLS with CA-signed certificate required for production)
 - Load balancers should use port 8080 for health checks
-
-**Expected Response:**
-```json
-{
-  "status": "SERVING"
-}
-```
 
 **Note:** The health check endpoint does not require authentication for local testing. It's designed to be accessible for monitoring and verification purposes.
 
@@ -1234,9 +1234,6 @@ docker run -d -p 8086:8086 --name media-forking-test media-forking-simulator:loc
 ```bash
 # Test health endpoint
 grpcurl -plaintext localhost:8086 com.cisco.wcc.ccai.v1.Health/Check
-
-# List available services
-grpcurl -plaintext localhost:8086 list
 ```
 
 **Expected Response:**
@@ -1244,6 +1241,18 @@ grpcurl -plaintext localhost:8086 list
 {
   "status": "SERVING"
 }
+```
+
+```bash
+# List available services
+grpcurl -plaintext localhost:8086 list
+```
+
+**Expected Response:**
+```
+com.cisco.wcc.ccai.media.v1.ConversationAudio
+com.cisco.wcc.ccai.media.v1.VoiceVirtualAgent
+grpc.reflection.v1alpha.ServerReflection
 ```
 
 **4. View Container Logs:**
@@ -2207,7 +2216,7 @@ Content-Type: application/json
 
 **Parameter Details:**
 - **schemaId:** The UUID of the media forking schema (obtained from Service App creation or `/v1/dataSources/schemas` API)
-  - Example: `78efc775-dccb-45ca-9acf-989a4a59f788`
+  - Example: `523e1b7f-4693-47bc-b84e-a7b7a505fb0b`
 - **url:** Your gRPC endpoint URL - must match or be a subdomain/path of the Data Exchange Domain specified in your Service App
   - ✅ Service App domain: `acme.com` → Data source: `https://media-forking-customer-xyz.acme.com:8086`
   - ✅ Service App domain: `acme.com` → Data source: `https://acme.com/customer-xyz:8086`
@@ -2220,14 +2229,14 @@ Content-Type: application/json
 
 **Important Notes:**
 - **Per-Organization:** Register a separate data source for each customer organization
-- **Token Refresh:** The data source must be updated (PATCH) before the token expires to maintain service
+- **Token Refresh:** The data source must be updated (PUT) before the token expires to maintain service
 - **JWS Authentication:** Webex constructs JWS tokens using these parameters to authenticate with your gRPC endpoint
 
 **Response:**
 ```json
 {
   "id": "7791dc84-989c-4903-a3b5-8c48c039dfb3",
-  "schemaId": "78efc775-dccb-45ca-9acf-989a4a59f788",
+  "schemaId": "523e1b7f-4693-47bc-b84e-a7b7a505fb0b",
   "orgId": "ce861fba-6e2f-49f9-9a84-b354008fac9e",
   "applicationId": "Cc2171594ac633ebec0a22d2af5ff1e44a39539c28838507c3d0de9621d183afe",
   "status": "active",
@@ -2319,7 +2328,7 @@ The JWS token is used by WXCC to **authenticate with your gRPC server at runtime
 Update your data source registration with new nonce and expiration:
 
 ```bash
-PATCH https://webexapis.com/v1/dataSources/{dataSourceId}
+PUT https://webexapis.com/v1/dataSources/{dataSourceId}
 Authorization: Bearer SERVICE_APP_ACCESS_TOKEN
 Content-Type: application/json
 
@@ -2381,7 +2390,7 @@ class MediaForkingTokenManager:
         pass
     
     def update_data_source_auth(self, org_id, nonce, expiration):
-        # Call PATCH /v1/dataSources/{id} endpoint
+        # Call PUT /v1/dataSources/{id} endpoint
         # Update authentication.nonce and authentication.expiration
         pass
 
