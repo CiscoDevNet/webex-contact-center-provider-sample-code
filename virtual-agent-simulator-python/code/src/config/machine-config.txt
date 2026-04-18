@@ -1,0 +1,5 @@
+MachineAccountName:1
+MachineAccountPassword:a
+MachineAccountOrgId:1
+clientId:1
+clientSecret:1
