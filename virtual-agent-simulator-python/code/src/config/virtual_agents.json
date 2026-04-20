@@ -1,0 +1,32 @@
+[
+    {
+      "virtual_agent_id": 1,
+      "virtual_agent_name": "Travel Booking Agent",
+      "is_default": false
+    },
+    {
+      "virtual_agent_id": 2,
+      "virtual_agent_name": "Credit card service",
+      "is_default": false
+    },
+    {
+      "virtual_agent_id": 3,
+      "virtual_agent_name": "Insurance service",
+      "is_default": false
+    },
+    {
+      "virtual_agent_id": 4,
+      "virtual_agent_name": "Barge-in Travel Booking Agent",
+      "is_default": false
+    },
+    {
+      "virtual_agent_id": 5,
+      "virtual_agent_name": "Scripted Agent",
+      "is_default": false
+    },
+    {
+      "virtual_agent_id": 6,
+      "virtual_agent_name": "Barge-in General Agent",
+      "is_default": false
+    }
+]
