@@ -1,0 +1,50 @@
+.idea/*
+**/.idea/*
+**/__pycache__
+**/__pycache__/*
+**/*.joblib
+**/.DS_Store
+*.DS_Store
+**/models/*
+**/target/*
+**/local-setup/*.log
+**/*.log
+/aiPlatform/flink/jobs/archival-job/dependency-reduced-pom.xml
+**/dependency-reduced-pom.xml
+**/${project.build.directory}/*
+**/bin/
+**/target/
+**/build/
+**/out/
+### IntelliJ IDEA ###
+.classpath
+.project
+.idea
+*.iws
+*.iml
+*.ipr
+*.txt
+*.log
+
+### Eclipse ###
+.classpath
+.project
+.settings
+.settings/*
+pcap/webexcc-pcap-ui/test-report.xml
+
+### VSCode ###
+**/.vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix
+ccai-bom/.flattened-pom.xml
+*.xml.versionsBackup
+
+### Codex ###
+.codex/
