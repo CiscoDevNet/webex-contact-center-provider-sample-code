@@ -1,0 +1,14 @@
+services:
+  byova-multi-rpc-python:
+    image: byova-multi-rpc-python:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      # Override the gRPC listening port if needed.
+      GRPC_SERVER_PORT: 8086
+      # Number of worker threads for the gRPC ThreadPoolExecutor.
+      worker_thread: 10
+    restart: unless-stopped

@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: byova-multi-rpc-java
+  main:
+    # No HTTP server is started; keep Spring Boot from booting web support.
+    web-application-type: none
+
+logging:
+  level:
+    root: INFO
+    com.cisco.wccai: INFO
+
+grpc:
+  server:
+    port: 8086
+    shutdown-timeout-seconds: 30
+
+voice:
+  va:
+    input-timeout-millis: 10000
+    audio:
+      use-chunked-audio: true
+      write-to-file: false
+      amplitude-threshold: 2000
+      wav-buffer-size: 8000
+      chunk-buffer-size: 4000
+      ignore-buffer-size: 15
+    dtmf:
+      input-length: 9
+      inter-digit-timeout-millis: 5000
+      # '#' key (sequence number 16 in the proto).
+      term-char: 16
