@@ -2685,9 +2685,60 @@ aplay /tmp/media-forking/conv-12345-agent.wav
 
 3. **Wrong Endpoint in Configuration**
    - **Solution:** Double-check the endpoint URL in your data source registration
-   - **Solution:** Ensure protocol is `grpc://` not `https://`
+   - **Solution:** Ensure the URL uses `https://` (gRPC runs over HTTP/2 with TLS)
 
-#### Issue 2: Audio Quality Issues
+#### Issue 2: No Audio Arriving (Most Common — ~90% of Cases)
+
+**Symptoms:**
+- Simulator logs show no incoming connections at all
+- Previously working setup suddenly stops receiving audio
+- No authentication errors in your server logs (because WXCC never connects)
+- WXCC flow may show media forking activity errors or silently skip it
+
+**Root Cause:** In the vast majority of cases, this is caused by an **expired data source registration**. WXCC constructs JWS tokens using the nonce and expiration settings from your data source. Once the `tokenLifeMinutes` window expires, WXCC can no longer generate a valid token and **will not even attempt to connect** to your endpoint. From your server's perspective, nothing happens — no connection, no error, just silence.
+
+**Solutions:**
+
+1. **Check your data source nonce/expiration settings**
+   - Update your data source registration with a **fresh nonce and extended expiration**
+   - The nonce and expiration must be refreshed **between every 1 hour (minimum) and 24 hours (maximum)**
+   - Use the Webex API to update your data source:
+   ```bash
+   # Update data source with new nonce and expiration
+   curl -X PUT "https://api.wxcc-us1.cisco.com/organization/{orgId}/data-source/{dataSourceId}" \
+     -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "nonce": "NEW_RANDOM_NONCE_VALUE",
+       "expiration": "2026-12-31T23:59:59Z"
+     }'
+   ```
+
+2. **Check simulator logs for token errors**
+   ```bash
+   # Look for token-related errors in your logs
+   # Common messages:
+   # - "JWT token is expired"
+   # - "Token validation failed"
+   # - "Claims validation failed"
+   ```
+
+3. **Implement automated token refresh**
+   - Use the [Webex BYO Data Source Manager](https://github.com/WebexSamples/webex-byods-manager) — a ready-made Python tool that handles data source registration, token extension, and automated nonce refresh (includes AWS Lambda deployment for fully automated cloud execution)
+   - Or build your own scheduled job that updates the data source nonce/expiration before it expires
+   - Recommended: refresh every 12 hours to stay well within the 1-24 hour window
+   - This is the single most important operational task for a production media forking deployment
+
+4. **Verify the data source is still active**
+   ```bash
+   # Check data source status
+   curl "https://api.wxcc-us1.cisco.com/organization/{orgId}/data-source/{dataSourceId}" \
+     -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+   ```
+
+> **⚠️ Production Tip:** Token expiration is the #1 cause of "audio stopped working" in production deployments. Always implement automated nonce/expiration refresh as part of your production setup.
+
+#### Issue 3: Audio Quality Issues
 
 **Symptoms:**
 - Audio is choppy or distorted
@@ -2712,7 +2763,7 @@ aplay /tmp/media-forking/conv-12345-agent.wav
    - **Solution:** Increase buffer size in your gRPC server
    - **Solution:** Process audio asynchronously to avoid blocking
 
-#### Issue 3: Authentication Failures
+#### Issue 4: Authentication Failures
 
 **Symptoms:**
 - Connection rejected with "authentication failed"
@@ -2729,7 +2780,7 @@ aplay /tmp/media-forking/conv-12345-agent.wav
    - **Solution:** Verify admin has authorized your Service App
    - **Solution:** Check authorization status in Control Hub
 
-#### Issue 4: Media Forking Not Triggering
+#### Issue 5: Media Forking Not Triggering
 
 **Symptoms:**
 - Call completes but no media streams received
@@ -2749,7 +2800,7 @@ aplay /tmp/media-forking/conv-12345-agent.wav
    - **Solution:** Verify CCAI configuration is selected in the flow activity
    - **Solution:** Confirm configuration status is "active"
 
-#### Issue 5: High Latency
+#### Issue 6: High Latency
 
 **Symptoms:**
 - Significant delay between conversation and audio receipt
