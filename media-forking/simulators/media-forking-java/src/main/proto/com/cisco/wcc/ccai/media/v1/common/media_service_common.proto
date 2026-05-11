@@ -1,0 +1,44 @@
+/*
+common Proto file for the media service flow
+*/
+syntax = "proto3";
+
+package com.cisco.wcc.ccai.media.v1;
+
+// Role of the participant providing transcript.
+enum ParticipantRole {
+  ROLE_UNSPECIFIED = 0;
+  CALLER = 1;
+  AGENT = 2;
+}
+
+// Enumeration for non-functional error handling.
+enum ErrorCode {
+  ERROR_NONE = 0;
+  ERROR_INVALID_AUDIO_FORMAT = 1;
+  ERROR_STREAM_FAILURE = 2;
+}
+
+// Encoding format of the audio data.
+enum AudioEncoding {
+  UNSPECIFIED = 0;
+  LINEAR16 = 1; // 16-bit linear PCM.
+  MULAW = 2;  // G.711 mu-law.
+  ALAW = 3; // G.711 A-law.
+}
+
+/*
+ Content of the text input
+*/
+message InputTextContent {
+  // The content can be either plain text or SSML.
+  oneof input_content {
+    // Plain text input.
+    string text = 1;
+
+    // Optional. SSML formatted text input.
+    string ssml = 2;
+  }
+  // Language code ofF the user input, e.g., 'en-US'.
+  string language_code = 3;
+}
