@@ -19,6 +19,7 @@ For the underlying call-flow contract and sequence diagrams, see the [parent REA
 - [Building a JAR](#building-a-jar)
 - [Docker](#docker)
 - [Configuration](#configuration)
+- [Authentication (JWS / JWT validation)](#authentication-jws--jwt-validation)
 - [Extending the Sample](#extending-the-sample)
 - [License](#license)
 
@@ -63,12 +64,20 @@ byova-multi-rpc-java/
     │   │   │   ├── AudioConstants.java         # Classpath resource names
     │   │   │   ├── AudioFileLoader.java        # Loads WAV bytes, writes capture files
     │   │   │   └── MuLawCodec.java             # G.711 µ-law <-> linear PCM
+    │   │   ├── auth/
+    │   │   │   ├── AccessTokenException.java        # Typed validation failure
+    │   │   │   ├── AuthorizationHandler.java        # Strategy interface
+    │   │   │   ├── AuthorizationHandlerFactory.java # Picks a handler from token shape
+    │   │   │   ├── JWTAuthorizationHandler.java     # Nimbus-based JWS verifier + JWKS cache
+    │   │   │   └── PublicKeyResponse.java           # JWKS response POJO
     │   │   ├── config/
+    │   │   │   ├── AuthProperties.java          # `auth.*` (JWT settings)
     │   │   │   ├── GrpcServerProperties.java   # `grpc.server.*`
     │   │   │   └── VoiceVaProperties.java      # `voice.va.*` (audio / DTMF)
     │   │   ├── exception/
     │   │   │   └── AudioProcessingException.java
     │   │   ├── grpc/
+    │   │   │   ├── AuthorizationServerInterceptor.java # JWT check on every gRPC call
     │   │   │   ├── GrpcContextHelper.java      # Correlation-id propagation
     │   │   │   ├── GrpcServer.java             # Lifecycle bean (ApplicationReadyEvent)
     │   │   │   ├── MetadataInterceptor.java    # Stamps an rpcId on each call
@@ -126,6 +135,10 @@ All knobs are exposed through Spring Boot configuration; see [`src/main/resource
 | `voice.va.audio.write-to-file`        | `false` | Persist captured caller audio to `~/recorded-audio/`         |
 | `voice.va.dtmf.input-length`          | `9`     | Max digits reported to WxCC                                  |
 | `voice.va.dtmf.term-char`             | `16`    | Terminator key — `16` is `#` in the proto enum               |
+| `auth.enabled`                        | `true`  | Master switch for JWT validation; see [Authentication](#authentication-jws--jwt-validation) |
+| `auth.datasource-url`                 | _placeholder_ | Public URL of this BYoVA service registered in Webex CC (must match `com.cisco.datasource.url` claim) |
+| `auth.datasource-schema-uuid`         | _placeholder_ | BYoVA schema UUID provisioned for your tenant                |
+| `auth.public-key-cache-minutes`       | `60`    | TTL of the cached Identity Broker JWKS                       |
 
 Override at runtime via Spring's standard config sources (env vars, `--prop=value` CLI args, external `application.yml`, …):
 
@@ -135,9 +148,46 @@ VOICE_VA_AUDIO_WRITE_TO_FILE=true \
 ./mvnw spring-boot:run
 ```
 
+## Authentication (JWS / JWT validation)
+
+Every inbound gRPC call is authenticated by [`AuthorizationServerInterceptor`](./src/main/java/com/cisco/wccai/byova/grpc/AuthorizationServerInterceptor.java) before the request reaches business code. The interceptor reads the `authorization` metadata header, parses it as a Cisco JWS/JWT, and runs four checks:
+
+1. **Signature verification** against the issuer's public JWKS, fetched from `<issuer>/oauth2/v2/keys/verificationjwk` and cached in-memory (default TTL 60 min, with stale-cache fallback on HTTP 429).
+2. **Expiration** — the `exp` claim must be in the future.
+3. **Required claims + issuer allow-list** — `iss` must be one of `auth.valid-issuers`, and `aud`, `sub`, and `jti` must all be present.
+4. **Datasource binding** — the `com.cisco.datasource.url` and `com.cisco.datasource.schema.uuid` claims must equal the `auth.datasource-url` and `auth.datasource-schema-uuid` values configured for this server. This is what guarantees the token was minted **for this BYoVA service and this schema** and not for some other Webex tenant or service.
+
+Any failure terminates the call with `Status.UNAUTHENTICATED`.
+
+### Required configuration
+
+In any deployed environment you must set:
+
+```yaml
+auth:
+  enabled: true
+  datasource-url: https://<your-public-byova-host>:443
+  datasource-schema-uuid: <your-byova-schema-uuid>
+```
+
+`datasource-url` and `datasource-schema-uuid` must match the values produced when you register the data source in Control Hub (see [`bring-your-own/virtual-agent/README.md`](../../../README.md) for the onboarding flow). The shipped `application.yml` contains obvious placeholder values that **must** be replaced — leaving them in place will reject every legitimate token.
+
+### Disabling for local development
+
+Setting `auth.enabled=false` skips validation entirely. Use this **only** for local smoke tests where you are sending requests yourself with a tool like `grpcurl`; never disable it in any environment that reaches the public Internet or the Webex CC platform.
+
+```bash
+AUTH_ENABLED=false ./mvnw spring-boot:run
+```
+
+### Where to extend it
+
+- To support OAuth2 opaque tokens or a custom scheme, add a new `AuthorizationHandler` implementation and wire it into [`AuthorizationHandlerFactory`](./src/main/java/com/cisco/wccai/byova/auth/AuthorizationHandlerFactory.java).
+- To add MDC propagation (org id, tracking id, request id), update `AuthorizationServerInterceptor#interceptCall` to push the desired claims onto SLF4J MDC; the `trackingId` header is already extracted via `TRACKING_ID_KEY`.
+
 ## Extending the Sample
 
 - **Connect a real speech service** — replace `VoiceVARequestObserver#emitWavAudioResponse` and `emitChunkedAudioResponses` with calls to your ASR/NLU engine, and stream its responses back as WAV or `CHUNK` prompts.
-- **Add authentication / mTLS** — `GrpcServer` builds a `NettyServerBuilder`. Wire in `.sslContext(...)` and/or a custom `ServerInterceptor` to enforce credential checks.
+- **Add mTLS** — `GrpcServer` builds a `NettyServerBuilder`. Wire in `.sslContext(...)` to enforce TLS in addition to the JWT check.
 - **Change the virtual-agent catalog** — override `VoiceVAResponseBuilder#sampleVirtualAgents()` to return your own list (e.g. fetched from a database).
 
