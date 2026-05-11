@@ -24,6 +24,9 @@
 *.iml
 *.ipr
 *.txt
+# Keep Python dependency manifests even though *.txt is ignored above
+!**/requirements.txt
+!**/requirements-*.txt
 *.log
 
 ### Eclipse ###
