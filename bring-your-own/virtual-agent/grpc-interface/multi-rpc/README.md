@@ -36,7 +36,7 @@ The Bring Your Own Virtual Agent Initiative empowers Developers and AI vendors t
 4. New RPC is initiated with [SESSION_START](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/byova_common.proto#L182) event of type [EVENT_INPUT](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L41) from VA Client to VA Server.
 5. Once prompt is sent, VA Server should call onCompleted. RPC is completed. A new RPC will be initiated to handle further events.
 
-<img src="./resources/images/voice-va-session-start-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(4, 2, 2, 0.1); border: 1px solid #ccc; border-radius: 4px;">
+<img src="./resources/diagrams/voice-va-session-start-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(4, 2, 2, 0.1); border: 1px solid #ccc; border-radius: 4px;">
 
 
 ### Step 2. DTMF Input Flow
@@ -53,7 +53,7 @@ The Bring Your Own Virtual Agent Initiative empowers Developers and AI vendors t
 7. Caller confirms the previously entered DTMF inputs by pressing '1', RPC-3 is initiated with caller's confirmation DTMF input.
 8. Another prompt can be sent in response to caller's confirmation. For example, an audio prompt with status or information based on the DTMF inputs in onNext followed by onCompleted. RPC-3 is completed.
 
-<img src="./resources/images/voice-va-dtmf-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
+<img src="./resources/diagrams/voice-va-dtmf-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
 
 ### Step 3. Audio Input Flow
 At the start of the call, the VA Server must choose between WAV Streaming and CHUNK Streaming, this decision should not be altered during the call. For scripted virtual agents where prompts are pre configured VA Server should use WAV streaming and for longer prompts with LLM models, VA Server should use CHUNK streaming.
@@ -69,7 +69,7 @@ At the start of the call, the VA Server must choose between WAV Streaming and CH
 6. VA Server must wait for the response generation to complete so that all responses can be sent in onNext. [Audio must have a WAV header for each onNext.]
 7. Send all responses in one or as a list of prompts with the response type [FINAL](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L110) in a single onNext, followed by onCompleted. RPC is completed. [More than one onNext is not permitted to send the responses with the response type [FINAL](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L110).]
 
-<img src="./resources/images/voice-va-wav-streaming.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
+<img src="./resources/diagrams/voice-va-wav-streaming.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
 
 ### Step 3.2. CHUNK Audio Streaming
 1. If caller starts speaking, a new RPC is initiated with caller's audio from VA Client to VA Server.
@@ -81,7 +81,7 @@ At the start of the call, the VA Server must choose between WAV Streaming and CH
 7. Last onNext must have EMPTY audio/bytes and response type must be [FINAL](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L110).
 8. Send the onCompleted after [FINAL](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L110) onNext, RPC is completed.
 
-<img src="./resources/images/voice-va-chunk-streaming-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
+<img src="./resources/diagrams/voice-va-chunk-streaming-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
 
 ### Step 4. Barge-In Prompts
 Every prompt will have an config option to set [barge-in](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L123) to TRUE or FALSE. If barge-in is enabled, any prompt with any [ResponseType (CHUNK, FINAL, PARTIAL)](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L109) or [VoiceVAInputMode](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L127) will be barged-in on caller's input except termination or transfer event prompts. The following sequence diagram uses the [INPUT_VOICE_DTMF](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L131) input mode that means every new RPC will contain silent audio packets until caller speaks and the same applies to [INPUT_VOICE](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L129) as well. If the input mode is [INPUT_EVENT_DTMF](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L130), a new RPC will be triggered upon DTMF input submission from the caller's end.
@@ -100,7 +100,7 @@ Every prompt will have an config option to set [barge-in](https://github.com/web
 12. Upon detecting silence, the VA Server sends an [END_OF_INPUT](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/byova_common.proto#L162) event, and the last Prompt-7, with [barge-in](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L123) disabled, will be played back to the caller.
 
 
-<img src="./resources/images/voice-va-barge-in-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
+<img src="./resources/diagrams/voice-va-barge-in-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
 
 
 ### Step 5. Call Termination, Transfer, and Custom Event
@@ -111,7 +111,7 @@ Call can be terminated, transferred to an agent, or a custom action can be perfo
 3. Session end from client application: When the caller disconnects the call, a [SESSION_END](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/byova_common.proto#L183) input event will be sent to the VA Server, and no prompt can be sent.
 4. Custom event: [CUSTOM_EVENT](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/byova_common.proto#L154) can be sent to perform preconfigured custom actions.
 
-<img src="./resources/images/voice-va-call-end-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
+<img src="./resources/diagrams/voice-va-call-end-flow.jpg" alt="Description" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
 
 
 **Note:** These flow diagrams are for illustrative purposes and may not cover all possible scenarios or edge cases. The actual implementation may vary based on specific requirements, configurations, and language.  For any questions or clarifications regarding the call flow, please refer to the documentation or contact the support team.
