@@ -13,7 +13,7 @@ This document describes:
 
 ## Table of Contents
 
-- [Virtual Agent Simulators](#virtual-agent-simulators)
+- [Multi-RPC Virtual Agent Simulators](#multi-rpc-virtual-agent-simulators)
 - [gRPC Bi-directional Streaming Guidelines](#grpc-bi-directional-streaming-guidelines)
 - [Virtual Agent Streaming and Event Handling Guidelines](#virtual-agent-streaming-and-event-handling-guidelines)
 - [Detailed Flow with Sequence Diagrams](#detailed-flow-with-sequence-diagrams)
@@ -27,7 +27,7 @@ This document describes:
 
 ---
 
-## Virtual Agent Simulators
+## Multi-RPC Virtual Agent Simulators
 
 Each `byova-multi-rpc-*` directory is a self-contained reference server. They implement exactly the same `VoiceVirtualAgent` gRPC contract (`ProcessCallerInput` bidirectional stream + `ListVirtualAgents` unary RPC) so they are interchangeable from the WxCC client's point of view; pick whichever language is closer to your stack.
 
