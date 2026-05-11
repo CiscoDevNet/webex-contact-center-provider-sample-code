@@ -31,7 +31,7 @@ Two attributes on every frame are particularly important for downstream processi
 - **`audio.role`** — `CALLER` or `AGENT`. Use this to demultiplex the two legs into separate audio sinks / ASR sessions.
 - **`audio.role_id`** — a per-leg GUID, useful when more than one party occupies a role (e.g. multi-party conferences or supervisor whisper).
 
-The proto contract is shipped with this sample at [`media-forking-java/src/main/proto/com/cisco/wcc/ccai/media/v1/conversationaudioforking.proto`](./media-forking-java/src/main/proto/com/cisco/wcc/ccai/media/v1/conversationaudioforking.proto) (with shared types in [`common/media_service_common.proto`](./media-forking-java/src/main/proto/com/cisco/wcc/ccai/media/v1/common/media_service_common.proto)). Refer to the [Real-Time Media Forking section of the repo root README](../README.md#starting-media-forking-section) for the high-level feature overview.
+The proto contract is shipped with this sample at [`simulators/media-forking-java/src/main/proto/com/cisco/wcc/ccai/media/v1/conversationaudioforking.proto`](./simulators/media-forking-java/src/main/proto/com/cisco/wcc/ccai/media/v1/conversationaudioforking.proto) (with shared types in [`common/media_service_common.proto`](./simulators/media-forking-java/src/main/proto/com/cisco/wcc/ccai/media/v1/common/media_service_common.proto)). Refer to the [Real-Time Media Forking section of the repo root README](../README.md#starting-media-forking-section) for the high-level feature overview.
 
 The end-to-end interaction between WxCC and a forking server looks like this:
 
@@ -39,13 +39,26 @@ The end-to-end interaction between WxCC and a forking server looks like this:
 
 ## Integration Variants in This Directory
 
-Media forking only supports one transport (gRPC bidirectional streaming with protobuf), so this directory ships one sample per language. Pick the cell that matches your stack — both implement the same `ConversationAudio` service.
+All runnable reference implementations live under [`simulators/`](./simulators/) — one sub-folder per language. Each simulator is a self-contained, end-to-end forking server you can `git clone` and run as-is to validate your WxCC config without writing any code first; it then doubles as the starting point for your production fork-consumer.
 
-| Transport | Schema | Java sample | Python sample |
+Media forking only supports one transport (gRPC bidirectional streaming with protobuf), so the matrix below is one row per language. Pick the cell that matches your stack — both implement the same `ConversationAudio` service.
+
+| Transport | Schema | Java simulator | Python simulator |
 |---|---|---|---|
-| **gRPC — bidirectional streaming** (single RPC carries the full call) | Protobuf | [`media-forking-java/`](./media-forking-java/) | [`media-forking-python/`](./media-forking-python/) *(scaffolded — implementation in progress)* |
+| **gRPC — bidirectional streaming** (single RPC carries the full call) | Protobuf | [`simulators/media-forking-java/`](./simulators/media-forking-java/) | [`simulators/media-forking-python/`](./simulators/media-forking-python/) *(scaffolded — implementation in progress)* |
 
-For per-variant prerequisites, run instructions, configuration knobs, and the gRPC message-by-message contract, head to the README inside the language directory you choose. The shipped sample is linked above; the cell marked *scaffolded* contains a placeholder directory but no runtime code yet.
+Folder layout at a glance:
+
+```
+media-forking/
+├── README.md                       ← this file (feature overview, onboarding, JWS)
+├── images/                         ← diagrams referenced from this README
+└── simulators/                     ← runnable reference implementations
+    ├── media-forking-java/         ← Spring Boot + gRPC sample (shipped)
+    └── media-forking-python/       ← scaffolded; implementation in progress
+```
+
+For per-simulator prerequisites, run instructions, configuration knobs, and the gRPC message-by-message contract, head to the README inside the simulator folder you choose (e.g. [`simulators/media-forking-java/README.md`](./simulators/media-forking-java/README.md)). The cell marked *scaffolded* contains a placeholder directory but no runtime code yet.
 
 ## Audio & Runtime Constraints
 
@@ -58,7 +71,7 @@ Independent of the language you pick, the WxCC client and any forking server mus
 - **Frame cadence:** small frames are streamed as the audio is captured; do not assume a fixed frame size — buffer on the receiving side as needed.
 - **Capture timestamp:** `AudioStream.audio_timestamp` is the wall-clock instant the audio was captured at the source; use it to compute end-to-end latency and to time-align the two legs.
 
-The Java sample uses these directly to log per-frame latency and per-(conversation, role) counters; see [`media-forking-java/src/main/java/com/cisco/wccai/forking/service/ConversationAudioProcessor.java`](./media-forking-java/src/main/java/com/cisco/wccai/forking/service/ConversationAudioProcessor.java).
+The Java simulator uses these directly to log per-frame latency and per-(conversation, role) counters; see [`simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/service/ConversationAudioProcessor.java`](./simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/service/ConversationAudioProcessor.java).
 
 ---
 
@@ -98,7 +111,7 @@ Every inbound `StreamConversationAudio` call carries the data source's signed JW
 
 Any failure must terminate the call with `Status.UNAUTHENTICATED` so the client backs off rather than silently retrying with a bad token.
 
-The reference implementation lives in the Java sample under `src/main/java/com/cisco/wccai/forking/auth/` and is wired in by [`AuthorizationServerInterceptor`](./media-forking-java/src/main/java/com/cisco/wccai/forking/grpc/AuthorizationServerInterceptor.java) — see [`media-forking-java/README.md` § Authentication (JWS / JWT validation)](./media-forking-java/README.md#authentication-jws--jwt-validation) for the full walk-through.
+The reference implementation lives in the Java simulator under [`simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/auth/`](./simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/auth/) and is wired in by [`AuthorizationServerInterceptor`](./simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/grpc/AuthorizationServerInterceptor.java) — see [`simulators/media-forking-java/README.md` § Authentication (JWS / JWT validation)](./simulators/media-forking-java/README.md#authentication-jws--jwt-validation) for the full walk-through.
 
 For the algorithm/library-level details and a sample `validateJWT` snippet, the [JWS validation while gRPC connection section in the repo root README](../README.md#byova-onboarding-section) covers the underlying Nimbus JOSE+JWT pattern (the same pattern is used by both BYoVA and media forking).
 
@@ -113,17 +126,18 @@ Things every forking implementation should think about, regardless of language:
 - **Per-leg multiplexing.** Demultiplex by `(conversation_id, role, role_id)` before pushing into ASR or storage, so the two legs stay separate.
 - **Latency budgets.** `AudioStream.audio_timestamp` lets you measure capture-to-receive latency. The sample logs it per-frame; instrument it (Micrometer / Prometheus / Datadog) so you can alert on regressions.
 - **Idempotency on retries.** WxCC may re-establish the stream on transient network failures. Use `conversation_id` + `role_id` to deduplicate on your side if your downstream system is not idempotent.
-- **Capture-to-disk in production.** The Java sample's `forking.write-to-file` flag is a development aid — never enable it in production without a retention policy and storage encryption (recorded conversations are highly sensitive PII).
+- **Capture-to-disk in production.** The Java simulator's `forking.write-to-file` flag is a development aid — never enable it in production without a retention policy and storage encryption (recorded conversations are highly sensitive PII).
 - **TLS.** The reference Java server terminates TLS at the ingress by default. For belt-and-braces, wire `NettyServerBuilder.sslContext(...)` directly, and consider mTLS — see the [`mtls-authentication.md`](../mtls-authentication.md) wiki for the WxCC-supported pattern.
-- **Health checks.** WxCC platform readiness probes hit a separate Health gRPC endpoint — the contract is shipped with this sample at [`media-forking-java/src/main/proto/com/cisco/wcc/ccai/v1/health.proto`](./media-forking-java/src/main/proto/com/cisco/wcc/ccai/v1/health.proto). Implement it at `https://<your-host>/<service>/v1/ping` returning the schema documented in the root README's [Serviceability section](../README.md#serviceability-section).
+- **Health checks.** WxCC platform readiness probes hit a separate Health gRPC endpoint — the contract is shipped with this sample at [`simulators/media-forking-java/src/main/proto/com/cisco/wcc/ccai/v1/health.proto`](./simulators/media-forking-java/src/main/proto/com/cisco/wcc/ccai/v1/health.proto). Implement it at `https://<your-host>/<service>/v1/ping` returning the schema documented in the root README's [Serviceability section](../README.md#serviceability-section).
 - **Token lifecycle.** Data-source JWS tokens expire (`tokenLifeMinutes`); your team must keep refreshing the data source via the [PUT data-sources API](https://developer.webex.com/webex-contact-center/docs/api/v1/data-sources/update-a-data-source) before expiry, or new calls will start failing authorization.
 
 ---
 
 ## Where to Go Next
 
-- **Stand up the Java sample** — open [`media-forking-java/README.md`](./media-forking-java/README.md) and follow Quick Start. It runs in one `./mvnw spring-boot:run`.
-- **Wire your downstream consumer** — replace the body of [`ConversationAudioProcessor`](./media-forking-java/src/main/java/com/cisco/wccai/forking/service/ConversationAudioProcessor.java) with calls into your ASR / recording / analytics stack. See the README's [Extending the Sample section](./media-forking-java/README.md#extending-the-sample).
+- **Browse the simulators** — start at [`simulators/`](./simulators/) for the list of runnable reference servers, then drop into the language sub-folder you care about.
+- **Stand up the Java simulator** — open [`simulators/media-forking-java/README.md`](./simulators/media-forking-java/README.md) and follow Quick Start. It runs in one `./mvnw spring-boot:run`.
+- **Wire your downstream consumer** — replace the body of [`ConversationAudioProcessor`](./simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/service/ConversationAudioProcessor.java) with calls into your ASR / recording / analytics stack. See the simulator README's [Extending the Sample section](./simulators/media-forking-java/README.md#extending-the-sample).
 - **Onboard a real tenant** — follow the [Onboarding](#onboarding-a-new-customer--partner) section above, then point WxCC at your deployed forking endpoint by registering the data source.
 - **Read the wider Media Service APIs context** — the [repo root README](../README.md) covers BYoVA + media forking together, the schema catalog, and the operational guidelines that apply to both.
 
@@ -135,4 +149,5 @@ Things every forking implementation should think about, regardless of language:
 2. **BYoDS / Data Sources API** — <https://developer.webex.com/webex-contact-center/docs/api/v1/data-sources>
 3. **Schema definitions catalog** (find the media-forking schema UUID for your release) — <https://github.com/webex/dataSourceSchemas>
 4. **Repo root README** (full Media Service APIs context, onboarding flow, references) — [`../README.md`](../README.md)
-5. **mTLS authentication wiki** — [`../mtls-authentication.md`](../mtls-authentication.md)
+5. **Reference simulators** (runnable forking servers shipped with this README) — [`./simulators/`](./simulators/) ([Java](./simulators/media-forking-java/README.md) · Python *scaffolded*)
+6. **mTLS authentication wiki** — [`../mtls-authentication.md`](../mtls-authentication.md)
