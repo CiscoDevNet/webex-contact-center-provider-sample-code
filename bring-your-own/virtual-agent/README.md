@@ -32,7 +32,7 @@ A voice virtual agent is the conversational endpoint that picks up a contact-cen
 - Optionally **escalate to a human agent** with conversation context (transcript or summary).
 - Emit post-call data (handle time, intent, resolution, …) so it surfaces in Webex Analyzer.
 
-![Sample voice virtual agent call escalated to a human agent](../../media-service-api/dialog-connector-simulator/src/main/resources/images/VACallFlowWithEscalation.jpg)
+![Sample voice virtual agent call escalated to a human agent](./resources/images/VACallFlowWithEscalation.jpg)
 
 *Fig 1: A sample virtual agent call that is escalated to a human agent.*
 
@@ -74,11 +74,11 @@ A **Service App** is the integration framework BYoVA uses to register your commu
 1. Sign in to the [Webex Developer Portal](https://developer.webex.com/admin/docs/service-apps) and create a new service app. Make sure the **valid domains** you list cover every FQDN your VA server will be reachable on.
 2. Submit the app for org-admin approval.
 
-   ![Service-app authorization request](../../media-service-api/dialog-connector-simulator/src/main/resources/images/serviceAppAuthorization.png)
+   ![Service-app authorization request](./resources/images/serviceAppAuthorization.png)
 
 3. The org admin reviews the submitted valid domains in [Control Hub → Apps → Service Apps](https://admin.webex.com/apps/serviceapps) and approves the app once they are validated.
 
-   ![Org-admin view of a pending service-app approval](../../media-service-api/dialog-connector-simulator/src/main/resources/images/serviceAppAdminView.png)
+   ![Org-admin view of a pending service-app approval](./resources/images/serviceAppAdminView.png)
 
 > **Tip:** For the full service-app reference, see [developer.webex.com/admin/docs/service-apps](https://developer.webex.com/admin/docs/service-apps).
 
@@ -86,7 +86,7 @@ A **Service App** is the integration framework BYoVA uses to register your commu
 
 Once the service app is authorized, go to the **My Apps** section of the developer portal, open the app, pick the authorized org from the dropdown, and generate a token pair.
 
-![Generating an access/refresh token pair for the service app](../../media-service-api/dialog-connector-simulator/src/main/resources/images/tokenGeneration.png)
+![Generating an access/refresh token pair for the service app](./resources/images/tokenGeneration.png)
 
 The pair contains:
 
@@ -147,7 +147,7 @@ Finally, link the authorized service app into a Contact Center configuration so 
 
 1. In Control Hub, go to [Integrations → Features](https://admin.webex.com/wxcc/integrations/features) and create a new BYoVA feature, selecting the authorized service app from the dropdown.
 
-   ![Creating a new BYoVA feature in Control Hub](../../media-service-api/dialog-connector-simulator/src/main/resources/images/configCreation.png)
+   ![Creating a new BYoVA feature in Control Hub](./resources/images/configCreation.png)
 
 2. In the [Flow Designer](https://admin.webex.com/wxcc/customer-experience/routing-flows/flows), open (or create) the routing flow that should hand the call off to your VA. Drop in the **Virtual Agent V2** activity, select the feature you just created, and configure the routing logic around it.
 3. Map the entry point that fronts your IVR to this flow:
