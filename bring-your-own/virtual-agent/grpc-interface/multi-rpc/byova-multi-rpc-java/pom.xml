@@ -27,6 +27,7 @@
         <protoc.version>3.25.3</protoc.version>
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <nimbus-jose-jwt.version>9.47</nimbus-jose-jwt.version>
     </properties>
 
     <dependencyManagement>
@@ -79,6 +80,19 @@
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
+        </dependency>
+
+        <!-- JWT/JWS validation (Nimbus JOSE + JWT) -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
+        </dependency>
+
+        <!-- Used by JWKS parsing in the JWT authorization handler -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
         <!-- Lombok (compile only) -->

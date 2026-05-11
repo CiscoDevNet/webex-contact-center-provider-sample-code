@@ -23,6 +23,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <!-- Override maven-antrun-plugin version from Spring Boot parent to support older Maven versions -->
         <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+        <nimbus-jose-jwt.version>9.47</nimbus-jose-jwt.version>
     </properties>
 
 
@@ -68,6 +69,13 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- JWT/JWS validation (Nimbus JOSE + JWT) -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
+        </dependency>
+
         <!-- Metrics Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -103,6 +111,20 @@
 
     <build>
         <plugins>
+            <!-- Explicit Lombok annotation processor wiring (required with Spring Boot 4.x
+                 because the parent POM no longer enables annotation processing by default). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

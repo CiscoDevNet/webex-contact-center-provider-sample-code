@@ -24,16 +24,19 @@ public class GrpcServer {
     private final GrpcServerProperties properties;
     private final List<BindableService> services;
     private final MetadataInterceptor metadataInterceptor;
+    private final AuthorizationServerInterceptor authorizationServerInterceptor;
 
     private Server server;
 
     public GrpcServer(
             GrpcServerProperties properties,
             List<BindableService> services,
-            MetadataInterceptor metadataInterceptor) {
+            MetadataInterceptor metadataInterceptor,
+            AuthorizationServerInterceptor authorizationServerInterceptor) {
         this.properties = properties;
         this.services = List.copyOf(services);
         this.metadataInterceptor = metadataInterceptor;
+        this.authorizationServerInterceptor = authorizationServerInterceptor;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -43,7 +46,10 @@ public class GrpcServer {
         }
         NettyServerBuilder builder = NettyServerBuilder.forPort(properties.port());
         services.forEach(builder::addService);
+        // Order matters: the last-added interceptor runs first. Authorize the call before
+        // we look at any other metadata.
         builder.intercept(metadataInterceptor);
+        builder.intercept(authorizationServerInterceptor);
 
         try {
             server = builder.build().start();
