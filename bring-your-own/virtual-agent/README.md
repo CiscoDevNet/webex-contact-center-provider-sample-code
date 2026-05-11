@@ -2,7 +2,7 @@
 
 The **Bring-Your-Own-Virtual-Agent (BYoVA)** initiative empowers developers and AI vendors to seamlessly integrate their own conversational interfaces (bots, IVR replacements, agent assistants, …) with the Webex Contact Center (WxCC) IVR. This directory contains everything you need to onboard a new BYoVA tenant and stand up a reference Virtual Agent server in the language and transport of your choice.
 
-This README focuses on the parts of the journey that are **specific to virtual agents** — what a voice virtual agent does, the supported integration variants, how to onboard your service into Webex, how the runtime authentication contract (JWS) works, and the audio/configuration constraints every implementation must respect. The detailed gRPC streaming contract and per-event call-flow walkthroughs live in the interface-specific READMEs (e.g. [`grpc-interface/multi-rpc/README.md`](./grpc-interface/multi-rpc/README.md)), and the broader Media Service APIs context lives in the [repo root README](../../README.md).
+This README focuses on the parts of the journey that are **specific to virtual agents** — what a voice virtual agent does, the supported integration variants, how to onboard your service into Webex, how the runtime authentication contract (JWS) works, and the audio/configuration constraints every implementation must respect. The detailed gRPC streaming contract and per-event call-flow walkthroughs live in the interface-specific [README](./grpc-interface/multi-rpc/README.md), and the broader Media Service APIs context lives in the [main README](../../README.md).
 
 ## Table of Contents
 
