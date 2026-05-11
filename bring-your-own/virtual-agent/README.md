@@ -7,7 +7,7 @@ This README focuses on the parts of the journey that are **specific to virtual a
 ## Table of Contents
 
 - [What Is a Voice Virtual Agent?](#what-is-a-voice-virtual-agent)
-- [Integration Variants in This Folder](#integration-variants-in-this-folder)
+- [Integration Variants in This Directory](#integration-variants-in-this-directory)
 - [Audio & Runtime Constraints](#audio--runtime-constraints)
 - [Onboarding a New Customer / Partner](#onboarding-a-new-customer--partner)
     - [Step 1. Create and Authorize a Service App](#step-1-create-and-authorize-a-service-app)
@@ -36,9 +36,9 @@ A voice virtual agent is the conversational endpoint that picks up a contact-cen
 
 *Fig 1: A sample virtual agent call that is escalated to a human agent.*
 
-## Integration Variants in This Folder
+## Integration Variants in This Directory
 
-WxCC supports two transport protocols and (for WebSocket) two payload schemas. The table below maps each combination to the reference implementations in this folder. Pick the cell that matches your stack — every variant implements the same conceptual contract (session start, audio in/out, DTMF, events, transfer, end), they just differ in transport and serialization.
+WxCC supports two transport protocols and (for WebSocket) two payload schemas. The table below maps each combination to the reference implementations in this directory. Pick the cell that matches your stack — every variant implements the same conceptual contract (session start, audio in/out, DTMF, events, transfer, end), they just differ in transport and serialization.
 
 | Transport | Schema | Java sample | Python sample |
 |---|---|---|---|
@@ -47,7 +47,7 @@ WxCC supports two transport protocols and (for WebSocket) two payload schemas. T
 | **WebSocket** | JSON | [`web-socket-interface/json-schema/byova-websocket-json-java/`](./web-socket-interface/json-schema/byova-websocket-json-java/) | `web-socket-interface/json-schema/byova-websocket-json-python/` *(scaffolded — implementation in progress)* |
 | **WebSocket** | Protobuf | [`web-socket-interface/proto-schema/byova-websocket-proto-java/`](./web-socket-interface/proto-schema/byova-websocket-proto-java/) | `web-socket-interface/proto-schema/byova-websocket-proto-python/` *(scaffolded — implementation in progress)* |
 
-For per-variant prerequisites, run instructions, configuration knobs, and the gRPC/WebSocket message-by-message contract, head to the README inside the interface folder you choose. The shipped samples are linked above; the cells marked *scaffolded* contain a placeholder folder structure but no runtime code yet.
+For per-variant prerequisites, run instructions, configuration knobs, and the gRPC/WebSocket message-by-message contract, head to the README inside the interface directory you choose. The shipped samples are linked above; the cells marked *scaffolded* contain a placeholder directory structure but no runtime code yet.
 
 ## Audio & Runtime Constraints
 
@@ -59,14 +59,7 @@ Independent of the transport you pick, the WxCC client and any BYoVA server must
 - **Encoding:** Linear16 or G.711 µ-law.
 - **Language code:** `en-US` (additional locales are added per release — confirm in your tenant's documentation).
 
-Other expectations to plan for in your server implementation:
-
-- **Welcome prompt:** must be sent in response to the `SESSION_START` event.
-- **Speech detection:** the server is expected to detect both the start of the caller's utterance (`START_OF_INPUT`) and the end of it (`END_OF_INPUT`). Sending `END_OF_INPUT` immediately stops the caller's audio stream, so emit it only on detected silence (or when barge-in fires).
-- **Input mode:** every response can switch the next input mode between `INPUT_VOICE`, `INPUT_EVENT_DTMF`, and `INPUT_VOICE_DTMF`. The default (when unset) is `INPUT_VOICE_DTMF`.
-- **Timeouts:** if the caller doesn't speak within the configured window, the client will deliver a `NO_INPUT` event — be ready to handle it.
-
-The full event grammar, the protobuf field definitions, and per-step sequence diagrams are documented under each interface folder (start with [`grpc-interface/multi-rpc/README.md`](./grpc-interface/multi-rpc/README.md)).
+The full event grammar, the protobuf field definitions, and per-step sequence diagrams are documented under each interface directory (start with [`grpc-interface/multi-rpc/README.md`](./grpc-interface/multi-rpc/README.md)).
 
 ---
 
@@ -176,19 +169,8 @@ The validation flow is:
 4. Verify the signature against that key (RSA / RSASSA).
 5. Verify the standard claims (`iss`, `aud`, `exp`, `nbf`, …) against your expected values.
 
-A minimal Java sketch (using Nimbus JOSE + JWT):
 
-```java
-private boolean validateJWT(String jwtString, String jwkString) throws JOSEException, ParseException {
-    JWK jwk = JWK.parse(jwkString);
-    RSAPublicKey publicKey = (RSAPublicKey) jwk.toRSAKey().toPublicKey();
-    SignedJWT signedJWT = SignedJWT.parse(jwtString);
-    JWSVerifier verifier = new RSASSAVerifier(publicKey);
-    return signedJWT.verify(verifier);
-}
-```
-
-For a complete reference implementation including JWKS retrieval, key caching, claim validation, and the gRPC `ServerInterceptor` that ties it all together, see the dialog-connector simulator: [`media-service-api/dialog-connector-simulator/src/main/java/com/cisco/wccai/grpc/server/interceptors/JWTAuthorizationHandler.java`](../../media-service-api/dialog-connector-simulator/src/main/java/com/cisco/wccai/grpc/server/interceptors). The Python sample interceptor (`AuthInterceptor.py`) under each Python module shows the equivalent flow on that side.
+For a complete reference implementation including JWKS retrieval, key caching, claim validation, and the gRPC `ServerInterceptor` that ties it all together, see the [virtual agent simulators](./grpc-interface/multi-rpc/byova-multi-rpc-java/src/main/java/com/cisco/wccai/byova/grpc/AuthorizationServerInterceptor.java). The Python sample interceptor (`AuthInterceptor.py`) under each Python module shows the equivalent flow on that side.
 
 > **Production checklist:**
 > - Pin the JWS algorithm (e.g. RS256). Reject `none` and any algorithm you don't expect.
