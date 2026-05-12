@@ -2,7 +2,7 @@
 
 The **Bring-Your-Own-Virtual-Agent (BYoVA)** initiative empowers developers and AI vendors to seamlessly integrate their own conversational interfaces (bots, IVR replacements, agent assistants, …) with the Webex Contact Center (WxCC) IVR. This directory contains everything you need to onboard a new BYoVA tenant and stand up a reference Virtual Agent server in the language and transport of your choice.
 
-This README focuses on the parts of the journey that are **specific to virtual agents** — what a voice virtual agent does, the supported integration variants, how to onboard your service into Webex, how the runtime authentication contract (JWS) works, and the audio/configuration constraints every implementation must respect. The detailed gRPC streaming contract and per-event call-flow walkthroughs live in the interface-specific [README](./grpc-interface/multi-rpc/README.md), and the broader Media Service APIs context lives in the [main README](../../README.md).
+This README focuses on the parts of the journey that are **specific to virtual agents** — what a voice virtual agent does, the supported integration variants, how to onboard your service into Webex, how the runtime authentication contract (JWS) works, and the audio/configuration constraints every implementation must respect. The detailed gRPC streaming contract and per-event call-flow walkthroughs live in the interface-specific [README](./grpc-interface/README.md), and the broader Media Service APIs context lives in the [main README](../../README.md).
 
 ## Table of Contents
 
@@ -38,16 +38,14 @@ A voice virtual agent is the conversational endpoint that picks up a contact-cen
 
 ## Integration Variants in This Directory
 
-WxCC supports two transport protocols and (for WebSocket) two payload schemas. The table below maps each combination to the reference implementations in this directory. Pick the cell that matches your stack — every variant implements the same conceptual contract (session start, audio in/out, DTMF, events, transfer, end), they just differ in transport and serialization.
+WxCC supports two transport protocols for BYoVA — gRPC (Protobuf) and WebSocket (JSON). The table below maps each combination to the reference implementation in this directory. Both variants implement the same conceptual contract (session start, audio in/out, DTMF, events, transfer, end); they just differ in transport and serialization.
 
-| Transport | Schema | Java sample | Python sample |
-|---|---|---|---|
-| **gRPC — multi-RPC** (each interaction on its own short-lived RPC) | Protobuf | [`grpc-interface/multi-rpc/byova-multi-rpc-java/`](./grpc-interface/multi-rpc/byova-multi-rpc-java/) | [`grpc-interface/multi-rpc/byova-multi-rpc-python/`](./grpc-interface/multi-rpc/byova-multi-rpc-python/) |
-| **gRPC — single-RPC** (one long-lived bidirectional stream) | Protobuf | `grpc-interface/single-rpc/byova-single-rpc-java/` *(scaffolded — implementation in progress)* | `grpc-interface/single-rpc/byova-single-rpc-python/` *(scaffolded — implementation in progress)* |
-| **WebSocket** | JSON | [`web-socket-interface/json-schema/byova-websocket-json-java/`](./web-socket-interface/json-schema/byova-websocket-json-java/) | `web-socket-interface/json-schema/byova-websocket-json-python/` *(scaffolded — implementation in progress)* |
-| **WebSocket** | Protobuf | [`web-socket-interface/proto-schema/byova-websocket-proto-java/`](./web-socket-interface/proto-schema/byova-websocket-proto-java/) | `web-socket-interface/proto-schema/byova-websocket-proto-python/` *(scaffolded — implementation in progress)* |
+| Transport | Schema | Java sample |
+|---|---|---|
+| **gRPC** (each interaction carried on its own short-lived RPC) | Protobuf | [`grpc-interface/simulators/byova-multi-rpc-java/`](./grpc-interface/simulators/byova-multi-rpc-java/) — Python sample also available at [`grpc-interface/simulators/byova-multi-rpc-python/`](./grpc-interface/simulators/byova-multi-rpc-python/) |
+| **WebSocket** | JSON | [`web-socket-interface/simulators/byova-websocket-json-java/`](./web-socket-interface/simulators/byova-websocket-json-java/) |
 
-For per-variant prerequisites, run instructions, configuration knobs, and the gRPC/WebSocket message-by-message contract, head to the README inside the interface directory you choose. The shipped samples are linked above; the cells marked *scaffolded* contain a placeholder directory structure but no runtime code yet.
+For per-variant prerequisites, run instructions, configuration knobs, and the gRPC/WebSocket message-by-message contract, head to the README inside the interface directory you choose.
 
 ## Audio & Runtime Constraints
 
@@ -59,7 +57,7 @@ Independent of the transport you pick, the WxCC client and any BYoVA server must
 - **Encoding:** Linear16 or G.711 µ-law.
 - **Language code:** `en-US` (additional locales are added per release — confirm in your tenant's documentation).
 
-The full event grammar, the protobuf field definitions, and per-step sequence diagrams are documented under each interface directory (start with [`grpc-interface/multi-rpc/README.md`](./grpc-interface/multi-rpc/README.md)).
+The full event grammar, the protobuf field definitions, and per-step sequence diagrams are documented under each interface directory (start with [`grpc-interface/README.md`](./grpc-interface/README.md)).
 
 ---
 
@@ -170,7 +168,7 @@ The validation flow is:
 5. Verify the standard claims (`iss`, `aud`, `exp`, `nbf`, …) against your expected values.
 
 
-For a complete reference implementation including JWKS retrieval, key caching, claim validation, and the gRPC `ServerInterceptor` that ties it all together, see the [virtual agent simulators](./grpc-interface/multi-rpc/byova-multi-rpc-java/src/main/java/com/cisco/wccai/byova/grpc/AuthorizationServerInterceptor.java). The Python sample interceptor (`AuthInterceptor.py`) under each Python module shows the equivalent flow on that side.
+For a complete reference implementation including JWKS retrieval, key caching, claim validation, and the gRPC `ServerInterceptor` that ties it all together, see the [virtual agent simulators](./grpc-interface/simulators/byova-multi-rpc-java/src/main/java/com/cisco/wccai/byova/grpc/AuthorizationServerInterceptor.java). The Python sample interceptor (`AuthInterceptor.py`) under each Python module shows the equivalent flow on that side.
 
 > **Production checklist:**
 > - Pin the JWS algorithm (e.g. RS256). Reject `none` and any algorithm you don't expect.
@@ -189,7 +187,7 @@ A few things worth thinking about before you go live:
 
 ## Where to Go Next
 
-- Pick your transport / schema and read the corresponding interface README. The most fully-documented one today is [`grpc-interface/multi-rpc/README.md`](./grpc-interface/multi-rpc/README.md), which covers the full event-by-event call flow with sequence diagrams and is a good baseline even if you ultimately use a different variant.
+- Pick your transport / schema and read the corresponding interface README. The most fully-documented one today is [`grpc-interface/README.md`](./grpc-interface/README.md), which covers the full event-by-event call flow with sequence diagrams and is a good baseline even if you ultimately use a different variant.
 - Read the proto definitions directly under [`webex/dataSourceSchemas`](https://github.com/webex/dataSourceSchemas/tree/main/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto) — these are the source of truth for the wire contract.
 
 ## References
