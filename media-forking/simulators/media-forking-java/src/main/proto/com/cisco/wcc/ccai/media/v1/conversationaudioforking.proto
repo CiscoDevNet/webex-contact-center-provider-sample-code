@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package com.cisco.wcc.ccai.media.v1;
+
+import "google/protobuf/timestamp.proto";
+import "com/cisco/wcc/ccai/media/v1/common/media_service_common.proto";
+
+// Request message for streaming conversation audio.
+message ConversationAudioForkingRequest {
+  // Conversation ID - mapped to call ID.
+  string conversation_id = 1;
+
+  // Customer org id.
+  string customer_org_id = 2;
+
+  // Audio stream
+  AudioStream audio = 3;
+
+  //Optional:Map to capture any additional or miscellaneous info. For future use and not supported currently
+  map<string, string> additional_info = 4;
+
+}
+
+message AudioStream {
+  // The raw audio bytes for the stream (either agent or caller).
+  bytes audio_data = 1;
+
+  AudioEncoding encoding = 2;
+
+  // Sampling rate of the input audio in Hz.
+  int32 sample_rate_hertz = 3;
+
+  // Start timestamp of when the audio data was captured.
+  google.protobuf.Timestamp audio_timestamp = 4;
+
+  // Role of the participant providing the audio (caller or agent).
+  ParticipantRole role = 5;
+
+  /*
+   Identifier for the individual leg, based on the party. GUID
+   Used to track an individual leg within a conversation
+   */
+  string role_id = 6;
+}
+
+// Response message for server to send acknowledgement/status to the client.
+message ConversationAudioForkingResponse {
+  // Optional acknowledgment or status message.
+  string status_message = 1;
+
+  // Any error codes related to processing the stream (optional).
+  ErrorCode error_code = 2;
+}
+
+// Service definition for streaming agent and caller audio.
+service ConversationAudio {
+  // Bidirectional streaming RPC where the client streams the audio during the call and server sends acknowledgement once per call when onComplete() is received.
+  rpc StreamConversationAudio(stream ConversationAudioForkingRequest) returns (stream ConversationAudioForkingResponse);
+}
