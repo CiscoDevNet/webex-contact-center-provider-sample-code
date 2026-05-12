@@ -1,4 +1,4 @@
-# Multi-stage build for the BYoVA multi-RPC sample (Spring Boot).
+# Multi-stage build for the BYoVA gRPC sample (Spring Boot).
 # ---- Build stage ----
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace

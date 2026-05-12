@@ -12,11 +12,11 @@
     </parent>
 
     <groupId>com.cisco.wccai</groupId>
-    <artifactId>byova-multi-rpc-java</artifactId>
+    <artifactId>byova-grpc-java</artifactId>
     <version>1.0.0</version>
-    <name>byova-multi-rpc-java</name>
+    <name>byova-grpc-java</name>
     <description>Sample Spring Boot implementation of the Webex Contact Center Bring-Your-Own-Virtual-Agent
-        (BYoVA) multi-RPC gRPC interface.</description>
+        (BYoVA) gRPC interface.</description>
 
     <properties>
         <java.version>21</java.version>

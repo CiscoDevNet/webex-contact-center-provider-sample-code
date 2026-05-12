@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# BYOVA Multi-RPC Python - Startup Script
+# BYoVA gRPC Python - Startup Script
 
 set -euo pipefail
 
@@ -33,6 +33,6 @@ cd "$CODE_DIR/src"
 python -m grpc_tools.protoc -I./proto --python_out=./proto --grpc_python_out=./proto ./proto/*.proto
 
 # Start the gRPC server
-echo "Starting BYOVA Multi-RPC Python server..."
+echo "Starting BYoVA gRPC Python server..."
 cd "$SCRIPT_DIR"
 python "$CODE_DIR/src/server/AIAgentServer.py"

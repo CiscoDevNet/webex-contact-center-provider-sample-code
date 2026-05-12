@@ -1,6 +1,6 @@
-# BYoVA Multi-RPC Sample (Spring Boot / Java)
+# BYoVA gRPC Sample (Spring Boot / Java)
 
-A reference implementation of the Webex Contact Center **Bring-Your-Own-Virtual-Agent (BYoVA) multi-RPC** gRPC interface, built with Spring Boot 3 and `grpc-java`. It exposes the `VoiceVirtualAgent` bidirectional-streaming service plus the unary `ListVirtualAgents` RPC, and demonstrates how to handle the three input types the WxCC platform sends:
+A reference implementation of the Webex Contact Center **Bring-Your-Own-Virtual-Agent (BYoVA)** gRPC interface, built with Spring Boot 3 and `grpc-java`. It exposes the `VoiceVirtualAgent` bidirectional-streaming service plus the unary `ListVirtualAgents` RPC, and demonstrates how to handle the three input types the WxCC platform sends:
 
 - **Event input** (`SESSION_START`, `NO_INPUT`, `CUSTOM_EVENT`, …)
 - **Audio input** — µ-law 8 kHz caller audio, silence-detected, buffered, and echoed back in either chunked or single-WAV mode.
@@ -51,7 +51,7 @@ Point your BYoVA client (or grpcurl) at `localhost:8086` and start sending `Voic
 ## Project Layout
 
 ```
-byova-multi-rpc-java/
+byova-grpc-java/
 ├── Dockerfile                  # Multi-stage build (JDK 21 → JRE 21 runtime)
 ├── docker-compose.yml          # One-command container run
 ├── mvnw / mvnw.cmd / .mvn/     # Maven wrapper
@@ -59,7 +59,7 @@ byova-multi-rpc-java/
 └── src/
     ├── main/
     │   ├── java/com/cisco/wccai/byova/
-    │   │   ├── ByovaMultiRpcApplication.java   # Spring Boot entry point
+    │   │   ├── ByovaGrpcApplication.java       # Spring Boot entry point
     │   │   ├── audio/
     │   │   │   ├── AudioConstants.java         # Classpath resource names
     │   │   │   ├── AudioFileLoader.java        # Loads WAV bytes, writes capture files
@@ -107,10 +107,10 @@ If you change anything under `src/main/proto/`, just rebuild — `mvn compile` i
 
 ```bash
 ./mvnw clean package -DskipTests
-java -jar target/byova-multi-rpc-java-1.0.0.jar
+java -jar target/byova-grpc-java-1.0.0.jar
 ```
 
-The packaged jar is a Spring Boot fat jar (layered) with `ByovaMultiRpcApplication` as the entry point.
+The packaged jar is a Spring Boot fat jar (layered) with `ByovaGrpcApplication` as the entry point.
 
 ## Docker
 

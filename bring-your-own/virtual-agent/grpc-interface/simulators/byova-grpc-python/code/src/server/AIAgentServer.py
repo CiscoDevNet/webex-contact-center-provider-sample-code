@@ -72,7 +72,7 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=thread_count), interceptors=[AuthInterceptor()])
     voicevirtualagent_pb2_grpc.add_VoiceVirtualAgentServicer_to_server(AIAgent(), server)
     server.add_insecure_port(f'[::]:{PORT}')
-    print(f'Starting BYOVA Multi-RPC Python server on port {PORT}')
+    print(f'Starting BYoVA gRPC Python server on port {PORT}')
     server.start()
     server.wait_for_termination()
 

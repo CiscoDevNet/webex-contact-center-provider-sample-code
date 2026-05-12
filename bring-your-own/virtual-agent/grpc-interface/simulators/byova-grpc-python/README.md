@@ -1,6 +1,6 @@
-# BYoVA Multi-RPC Sample (Python)
+# BYoVA gRPC Sample (Python)
 
-A reference implementation of the Webex Contact Center **Bring-Your-Own-Virtual-Agent (BYoVA) multi-RPC** gRPC interface, written in Python using `grpcio`. It exposes the `VoiceVirtualAgent` bidirectional-streaming service plus the unary `ListVirtualAgents` RPC, and demonstrates how to handle the three input types the WxCC platform sends:
+A reference implementation of the Webex Contact Center **Bring-Your-Own-Virtual-Agent (BYoVA)** gRPC interface, written in Python using `grpcio`. It exposes the `VoiceVirtualAgent` bidirectional-streaming service plus the unary `ListVirtualAgents` RPC, and demonstrates how to handle the three input types the WxCC platform sends:
 
 - **Event input** (`SESSION_START`, `SESSION_END`, `NO_INPUT`, …)
 - **Audio input** — µ-law 8 kHz caller audio, buffered, and echoed back in chunked mode.
@@ -73,7 +73,7 @@ python code/src/server/AIAgentServer.py
 ## Project Layout
 
 ```
-byova-multi-rpc-python/
+byova-grpc-python/
 ├── Dockerfile                # Container image (Python 3.10-slim, non-root)
 ├── docker-compose.yml        # One-command container run
 ├── README.md

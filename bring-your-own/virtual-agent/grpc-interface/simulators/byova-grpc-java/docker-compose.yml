@@ -1,6 +1,6 @@
 services:
-  byova-multi-rpc-java:
-    image: byova-multi-rpc-java:latest
+  byova-grpc-java:
+    image: byova-grpc-java:latest
     build:
       context: .
       dockerfile: Dockerfile

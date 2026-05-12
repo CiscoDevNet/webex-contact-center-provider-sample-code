@@ -1,6 +1,6 @@
 spring:
   application:
-    name: byova-multi-rpc-java
+    name: byova-grpc-java
   main:
     # No HTTP server is started; keep Spring Boot from booting web support.
     web-application-type: none

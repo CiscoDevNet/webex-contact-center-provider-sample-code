@@ -1,6 +1,6 @@
 services:
-  byova-multi-rpc-python:
-    image: byova-multi-rpc-python:latest
+  byova-grpc-python:
+    image: byova-grpc-python:latest
     build:
       context: .
       dockerfile: Dockerfile
