@@ -67,12 +67,12 @@ Every feature README covers:
 
 Pick the simulator whose feature, schema, language, and transport match your target stack:
 
-| Feature | Schema | Language | Transport | Code link |
+| Feature | Transport | Schema | Language | Code Sample |
 |---|---|---|---|---|
-| BYoVA (Virtual Agent) | Protobuf | Java | gRPC | [`bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-java/`](./bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-java/) |
-| BYoVA (Virtual Agent) | Protobuf | Python | gRPC | [`bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-python/`](./bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-python/) |
-| BYoVA (Virtual Agent) | JSON | Java | WebSocket | [`bring-your-own/virtual-agent/web-socket-interface/simulators/byova-websocket-json-java/`](./bring-your-own/virtual-agent/web-socket-interface/simulators/byova-websocket-json-java/) |
-| Real-Time Media Forking | Protobuf | Java | gRPC | [`media-forking/simulators/media-forking-java/`](./media-forking/simulators/media-forking-java/) |
+| BYoVA (Virtual Agent) | gRPC | Protobuf | Java | [`bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-java/`](./bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-java/) |
+| BYoVA (Virtual Agent) | gRPC | Protobuf | Python | [`bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-python/`](./bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-python/) |
+| BYoVA (Virtual Agent) | WebSocket | JSON | Java | [`bring-your-own/virtual-agent/web-socket-interface/simulators/byova-websocket-json-java/`](./bring-your-own/virtual-agent/web-socket-interface/simulators/byova-websocket-json-java/) |
+| Real-Time Media Forking | gRPC | Protobuf | Java | [`media-forking/simulators/media-forking-java/`](./media-forking/simulators/media-forking-java/) |
 
 Every simulator is self-contained — clone the repo, follow the **Quick Start** in that simulator's README, and you'll have a server listening locally in one command (`./mvnw spring-boot:run` for Java, `./run.sh` for Python).
 
