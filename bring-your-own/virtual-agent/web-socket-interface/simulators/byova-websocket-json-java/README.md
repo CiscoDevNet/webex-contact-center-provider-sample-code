@@ -2,7 +2,7 @@
 
 A reference implementation of the Webex Contact Center **Bring-Your-Own-Virtual-Agent (BYoVA) WebSocket** interface using the **JSON wire format**, built with Spring Boot 4 and the standard `spring-boot-starter-websocket`. It exposes two endpoints:
 
-- `/v1/va` — bidirectional channel that carries text JSON envelopes for control messages and binary frames for caller audio.
+- `/v1/va` — bidirectional channel that carries text JSON envelopes for everything: control messages, virtual-agent responses, and caller audio (base64-encoded inside `VoiceInput.caller_audio_b64`). No binary frames are used.
 - `/v1/listVirtualAgents` — request/response endpoint used by the WxCC platform to discover the virtual agents this server can serve.
 
 The sample handles the same three input types the WxCC platform sends:
@@ -28,7 +28,7 @@ For the underlying call-flow contract, see the [parent BYoVA README](../../../RE
 ## Prerequisites
 
 - **JDK 21 or later** (the project pins `java.version=21`).
-- **Maven 3.2.5+**.
+- **Maven 3.9+** (required by Spring Boot 4).
 - **Network access to Maven Central** the first time you build, to download Spring Boot, Jackson, Nimbus JOSE+JWT, and Lombok.
 - *(Optional)* **Docker / Docker Compose** if you want to run the containerised version.
 

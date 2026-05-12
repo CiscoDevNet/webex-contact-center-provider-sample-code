@@ -14,7 +14,7 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
  * Authorization} HTTP header during the WebSocket upgrade.
  *
  * <p>This is the WebSocket equivalent of the gRPC {@code AuthorizationServerInterceptor} in the
- * BYoVA multi-RPC sample: the token is parsed, signature-verified against the issuer's JWKS,
+ * BYoVA gRPC sample: the token is parsed, signature-verified against the issuer's JWKS,
  * checked for required claims, and bound to the configured datasource URL/schema UUID. A failure
  * aborts the handshake with HTTP 401, so no WebSocket session is ever opened with an invalid
  * caller.
