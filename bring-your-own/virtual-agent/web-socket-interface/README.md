@@ -1,14 +1,12 @@
 # Bring Your Own Virtual Agent — WebSocket
 
-The Bring-Your-Own-Virtual-Agent (BYoVA) initiative empowers developers and AI vendors to seamlessly integrate external conversational interfaces with Webex Contact Center (WxCC). The **WebSocket** flavour of the integration carries the entire conversation over **one long-lived WebSocket session per call**. The two sides exchange discrete request/response messages on the same socket — no per-interaction RPC handshake, no protobuf code generation requirement (for the JSON variant), and a thinner runtime footprint than the gRPC variants.
+The Bring-Your-Own-Virtual-Agent (BYoVA) initiative empowers developers and AI vendors to seamlessly integrate external conversational interfaces with Webex Contact Center (WxCC). The **WebSocket** flavour of the integration carries the entire conversation over **one long-lived WebSocket session per call**. The two sides exchange discrete request/response messages on the same socket — every event, every prompt, and every audio packet flows over the same connection until the call ends.
 
 This document describes:
 
-- The reference implementations available under this directory — both **JSON** and **Protobuf** wire formats, in Java today (Python coming).
-- The WebSocket framing rules every BYoVA server must follow (text vs. binary frames, ping/pong, close codes, envelope ordering) and the high-level event/streaming contract the VA Server must honour.
-- Detailed call-flow walkthroughs (with sequence diagrams) for session start, DTMF, audio (WAV and CHUNK), barge-in, and call termination scenarios.
-
-The unifying conceptual contract (events, prompts, input modes, audio modes) is identical to the gRPC variants — only the on-the-wire framing differs. If you already know the BYoVA contract from the [multi-RPC README](../grpc-interface/multi-rpc/README.md), you only need to learn the framing rules in this document; the events and rules are the same.
+- The reference WebSocket simulator available under this directory — **JSON** wire format, Spring Boot / Java.
+- The WebSocket framing rules every BYoVA server must follow (text frames, ping/pong, close codes, envelope ordering) and the high-level event/streaming contract the VA Server must honour.
+- Detailed call-flow walkthroughs (with sequence diagrams) for session start, DTMF, audio (WAV and CHUNK), barge-in, and call-termination scenarios.
 
 
 ---
@@ -29,14 +27,13 @@ The unifying conceptual contract (events, prompts, input modes, audio modes) is 
 
 ---
 
-## WebSocket Virtual Agent Simulators
+## WebSocket Virtual Agent Simulator
 
-This directory ships one reference simulator per (schema, language) pair. All simulators expose the same two endpoints — `/v1/va` for the per-call channel and `/v1/listVirtualAgents` for VA discovery — and implement the same conceptual contract, so they are interchangeable from the WxCC client's point of view. Pick the cell that matches your stack.
+This directory ships a Java reference simulator that uses the **JSON** wire format. It exposes the two endpoints WxCC connects to — `/v1/va` for the per-call channel and `/v1/listVirtualAgents` for VA discovery — and implements the full conceptual contract described below.
 
-| Schema | Java simulator | Python simulator |
+| Module | Stack | Get started |
 |---|---|---|
-| **JSON** (text frames; audio base64-embedded) | [`json-schema/simulators/byova-websocket-json-java/`](./json-schema/simulators/byova-websocket-json-java/) | `json-schema/simulators/byova-websocket-json-python/` *(scaffolded — implementation in progress)* |
-| **Protobuf** (binary frames; audio raw in `bytes` fields) | [`proto-schema/simulators/byova-websocket-proto-java/`](./proto-schema/simulators/byova-websocket-proto-java/) | `proto-schema/simulators/byova-websocket-proto-python/` *(scaffolded — implementation in progress)* |
+| [`json-schema/simulators/byova-websocket-json-java/`](./json-schema/simulators/byova-websocket-json-java/) | Spring Boot 4 / Java 21, `spring-boot-starter-websocket`, Jackson, Maven | `mvn spring-boot:run` on port `8086`. See the [module README](./json-schema/simulators/byova-websocket-json-java/README.md) for prerequisites, configuration, JWS validation, Docker, and extension points. |
 
 Folder layout at a glance:
 
@@ -45,42 +42,30 @@ web-socket-interface/
 ├── README.md                                ← this file (framing, flows, diagrams)
 ├── resources/
 │   └── diagrams/                            ← WebSocket sequence diagrams (ws-*.jpeg)
-├── json-schema/
-│   └── simulators/
-│       ├── byova-websocket-json-java/       ← Spring Boot 4 + JSON; shipped
-│       └── byova-websocket-json-python/     ← scaffolded
-└── proto-schema/
+└── json-schema/
     └── simulators/
-        ├── byova-websocket-proto-java/      ← Spring Boot 4 + Protobuf; shipped
-        └── byova-websocket-proto-python/    ← scaffolded
+        └── byova-websocket-json-java/       ← Spring Boot 4 + JSON; shipped
 ```
 
-For per-simulator prerequisites, run instructions, configuration, JWS validation, Docker, and extension points, head to the README inside the simulator you choose:
-
-- [`json-schema/simulators/byova-websocket-json-java/README.md`](./json-schema/simulators/byova-websocket-json-java/README.md) — `mvn spring-boot:run` (port `8086`).
-- [`proto-schema/simulators/byova-websocket-proto-java/README.md`](./proto-schema/simulators/byova-websocket-proto-java/README.md) — `mvn spring-boot:run` (port `8086`).
-
-The cells marked *scaffolded* contain a placeholder directory but no runtime code yet.
-
-> The flow walkthroughs below are written using the **JSON** simulator's message names (`VOICE_VA_REQUEST`, `VOICE_VA_RESPONSE`, etc.) for concreteness — see the [JSON envelope DTO](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/WsEnvelopeBase.java) and the [`MessageType`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/constant/MessageType.java) enum. The Protobuf simulator uses identically-named message types serialized as protobuf binary frames; the per-step semantics described here apply to both.
+> The flow walkthroughs below use the simulator's message names (`VOICE_VA_REQUEST`, `VOICE_VA_RESPONSE`, etc.) — see the [JSON envelope DTO](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/WsEnvelopeBase.java) and the [`MessageType`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/constant/MessageType.java) enum.
 
 ## WebSocket Framing & Streaming Guidelines
 
-These rules are framing-level — they apply to every WebSocket BYoVA server regardless of schema. The Java simulators implement them in [`VirtualAgentWebSocketHandler`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/handler/VirtualAgentWebSocketHandler.java).
+These rules are framing-level — they apply to every WebSocket BYoVA server. The Java simulator implements them in [`VirtualAgentWebSocketHandler`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/handler/VirtualAgentWebSocketHandler.java).
 
 1. **One WebSocket session per call.** WxCC opens a single WebSocket to `/v1/va` when the caller's call connects, and uses it for the entire conversation. There is **no** per-interaction handshake — every event, every prompt, and every audio packet flows over the same socket until it is closed.
-2. **Frame type per schema.**
-    - **JSON variant** — all envelopes (control + audio) ride on **text frames**. The caller's audio is base64-encoded inside the JSON envelope's [`caller_audio_b64`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/VoiceInput.java#L17) field. Binary frames are not used.
-    - **Protobuf variant** — all envelopes ride on **binary frames** carrying the protobuf-serialized message; the audio is shipped raw inside the `bytes` field, no base64 overhead.
+2. **Text frames only.** All envelopes (control messages and caller audio) ride on **WebSocket text frames** carrying a JSON object. The caller's audio is base64-encoded inside the JSON envelope's [`caller_audio_b64`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/VoiceInput.java#L17) field — binary frames are not used.
 3. **Envelope ordering.** Every envelope carries a monotonically increasing `seq` and a `conversation_id` (see [`WsEnvelopeBase`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/WsEnvelopeBase.java)). The VA Server must process incoming envelopes in `seq` order and stamp its own `seq` on outgoing ones; out-of-order delivery should be treated as a transport bug.
 4. **Message types.** The wire-level discriminator is the envelope's `type` field (see [`MessageType`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/constant/MessageType.java)): `VOICE_VA_REQUEST`, `VOICE_VA_RESPONSE`, `ERROR`, `PING`, `PONG`. Anything else must be ignored with a logged warning.
 5. **Ping / Pong.** WxCC sends `PING` envelopes (or WebSocket-level pings) periodically as a liveness probe. The VA Server must respond with `PONG` (or a WebSocket-level pong) — the simulator handles this in [`handlePongMessage`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/handler/VirtualAgentWebSocketHandler.java#L62). Failing to answer pings will trigger an idle close.
 6. **Close codes.** Either side may initiate the close. The VA Server should close with `CloseStatus.NORMAL` after a `SESSION_END`; transport errors should close with `CloseStatus.SERVER_ERROR` (the simulator does this in [`handleTransportError`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/handler/VirtualAgentWebSocketHandler.java#L70)). After close, no further envelopes are accepted; a new call requires a new WebSocket.
-7. **Discovery channel.** The separate `/v1/listVirtualAgents` endpoint follows a request/response pattern (one inbound `LIST_VIRTUAL_AGENTS` envelope, one outbound list, then close). It is unrelated to the per-call `/v1/va` lifecycle.
+7. **Discovery channel.** The separate `/v1/listVirtualAgents` endpoint is a short-lived request/response WebSocket — see [`ListVirtualAgentWebSocketHandler`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/handler/ListVirtualAgentWebSocketHandler.java). The client sends a single text frame containing a [`ListVARequest`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/list/ListVARequest.java) JSON object (note: not enveloped — there is no `MessageType` wrapper here); the server replies with a [`ListVAResponse`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/list/ListVAResponse.java) listing the available [`VirtualAgentInfo`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/list/VirtualAgentInfo.java) entries, then either side closes. This channel is unrelated to the per-call `/v1/va` lifecycle.
+8. **Error envelope.** Either side may send an envelope of type `ERROR` to surface a recoverable problem to the peer (parse failure, schema mismatch, internal error, etc.). The receiver should log it and decide whether to continue or close based on severity. The simulator logs and continues; it does not propagate `ERROR` envelopes back as `VOICE_VA_RESPONSE`.
+9. **No mid-call resumption.** WebSockets are not auto-resumed: if the socket drops for any reason, the call is over from the VA Server's perspective. Do not buffer state hoping for a reconnect on the same `conversation_id`; the VA Client opens a brand-new socket for every new call.
 
 ## Virtual Agent Streaming and Event Handling Guidelines
 
-These rules describe the BYoVA event contract — they are framing-independent and apply identically to the gRPC and WebSocket variants.
+These rules describe the BYoVA event contract that the VA Server must honour throughout the WebSocket session.
 
 1. The sequence of events must follow the same order as outlined in the sequence diagrams below.
 2. The welcome prompt must be sent in response to the [`SESSION_START`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/constant/EventInputType.java#L9) input event.
@@ -97,7 +82,9 @@ These rules describe the BYoVA event contract — they are framing-independent a
 
 ## Detailed Flow with Sequence Diagrams
 
-> The diagrams below use a colour-coded swim-lane convention; see [`ws-color-code-names.jpeg`](./resources/diagrams/ws-color-code-names.jpeg) for the legend (caller, VA client / WxCC, VA server, AI service).
+The diagrams below use a colour-coded convention to keep the swim-lanes readable: caller audio (green) flows from the caller into the VA Server, server audio (blue) flows the other way, input/output events (red) drive state changes on either side, and per-utterance speech vs. silence segments use distinct colours so you can spot when the VA Server is detecting voice activity. The legend below shows each colour and its meaning — match it against the swim-lane labels in every diagram that follows.
+
+<img src="./resources/diagrams/ws-color-code-names.jpeg" alt="Colour code legend used by the WebSocket sequence diagrams: caller audio mapped to Client Audio (green), virtual agent response mapped to Server Audio (blue), input/output events in red, caller's speech and caller's silence each in their own colour" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
 
 ### Step 1. Start of Conversation
 
@@ -182,7 +169,9 @@ A call can be terminated, transferred to a live agent, or used to drive a custom
 3. **Session end from client** — when the caller hangs up, the VA Client sends a `VOICE_VA_REQUEST` carrying the [`SESSION_END`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/constant/EventInputType.java#L12) input event and then closes the WebSocket. No prompt can be sent in response — the socket is gone by the time the VA Server reads the event.
 4. **Custom event** — [`CUSTOM_EVENT`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/constant/OutputEventType.java#L15) (output) and [`CUSTOM_EVENT`](./json-schema/simulators/byova-websocket-json-java/src/main/java/com/cisco/wccai/ws/voice/constant/EventInputType.java#L21) (input) can be used to trigger pre-configured custom actions (queue moves, CRM screen-pops, analytics tagging, etc.) without ending the session.
 
-> The websocket-interface diagram set does not yet ship a dedicated call-end sequence diagram. The flow is identical to the gRPC variant on the conceptual level — see the [multi-RPC call-end diagram](../grpc-interface/multi-rpc/resources/diagrams/voice-va-call-end-flow.jpg) for a visual reference, substituting "RPC" with "VOICE_VA_RESPONSE envelope on the WebSocket".
+The diagram below shows all four termination scenarios side by side — transfer to a live agent, server-initiated session end, client-initiated session end (caller hangs up), and a custom-event hand-off back to the flow — each followed by the WebSocket close.
+
+<img src="./resources/diagrams/ws-termination-flow.jpeg" alt="WebSocket call-termination sequence diagram showing four scenarios: TRANSFER_TO_AGENT handing the call to an agent desktop, server-initiated SESSION_END, client-initiated SESSION_END when the caller hangs up, and CUSTOM_EVENT triggering a configured action; each scenario ends with the WebSocket being closed" style="box-shadow: 5px 4px 8px rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 4px;">
 
 ---
 
