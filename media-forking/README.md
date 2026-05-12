@@ -113,7 +113,7 @@ Any failure must terminate the call with `Status.UNAUTHENTICATED` so the client 
 
 The reference implementation lives in the Java simulator under [`simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/auth/`](./simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/auth/) and is wired in by [`AuthorizationServerInterceptor`](./simulators/media-forking-java/src/main/java/com/cisco/wccai/forking/grpc/AuthorizationServerInterceptor.java) — see [`simulators/media-forking-java/README.md` § Authentication (JWS / JWT validation)](./simulators/media-forking-java/README.md#authentication-jws--jwt-validation) for the full walk-through.
 
-For the algorithm/library-level details and a sample `validateJWT` snippet, the [JWS validation while gRPC connection section in the repo root README](../README.md#byova-onboarding-section) covers the underlying Nimbus JOSE+JWT pattern (the same pattern is used by both BYoVA and media forking).
+For the algorithm/library-level details and a sample `validateJWT` snippet, the [JWS validation during gRPC connection establishment section in the repo root README](../README.md#byova-onboarding-section) covers the underlying Nimbus JOSE+JWT pattern (the same pattern is used by both BYoVA and media forking).
 
 ---
 

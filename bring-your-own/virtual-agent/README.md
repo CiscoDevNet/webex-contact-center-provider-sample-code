@@ -168,7 +168,7 @@ The validation flow is:
 5. Verify the standard claims (`iss`, `aud`, `exp`, `nbf`, …) against your expected values.
 
 
-For a complete reference implementation including JWKS retrieval, key caching, claim validation, and the gRPC `ServerInterceptor` that ties it all together, see the [virtual agent simulators](./grpc-interface/simulators/byova-multi-rpc-java/src/main/java/com/cisco/wccai/byova/grpc/AuthorizationServerInterceptor.java). The Python sample interceptor (`AuthInterceptor.py`) under each Python module shows the equivalent flow on that side.
+For a complete reference implementation including JWKS retrieval, key caching, claim validation, and the gRPC `ServerInterceptor` that ties it all together, see the [virtual agent simulators](./grpc-interface/simulators/byova-grpc-java/src/main/java/com/cisco/wccai/byova/grpc/AuthorizationServerInterceptor.java). The Python sample interceptor (`AuthInterceptor.py`) under each Python module shows the equivalent flow on that side.
 
 > **Production checklist:**
 > - Pin the JWS algorithm (e.g. RS256). Reject `none` and any algorithm you don't expect.
