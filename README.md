@@ -20,11 +20,38 @@ This repository is intentionally split by **feature** and by **transport**. Each
 
 ## Features at a Glance
 
-| Feature | Transport | Schema | Onboarding walkthrough | Reference docs |
-|---|---|---|---|---|
-| **Bring-Your-Own-Virtual-Agent (BYoVA) — gRPC** | gRPC bidirectional streaming, one short-lived RPC per turn | Protobuf | [`bring-your-own/virtual-agent/README.md` § Onboarding](./bring-your-own/virtual-agent/README.md#onboarding-a-new-customer--partner) | [`bring-your-own/virtual-agent/grpc-interface/README.md`](./bring-your-own/virtual-agent/grpc-interface/README.md) |
-| **Bring-Your-Own-Virtual-Agent (BYoVA) — WebSocket** | One long-lived WebSocket per call (text frames) | JSON ([AsyncAPI schema](https://github.com/webex/dataSourceSchemas/blob/main/Services/VoiceVirtualAgent_WebSocket/a38a10b7-43e4-4676-a076-a7d6dce9387d/AsyncApiSpec/VoiceVirtualAgent_WsSchema.json)) | [`bring-your-own/virtual-agent/README.md` § Onboarding](./bring-your-own/virtual-agent/README.md#onboarding-a-new-customer--partner) | [`bring-your-own/virtual-agent/web-socket-interface/README.md`](./bring-your-own/virtual-agent/web-socket-interface/README.md) |
-| **Real-Time Media Forking** | gRPC bidirectional streaming, one RPC per call | Protobuf | [`media-forking/README.md` § Onboarding](./media-forking/README.md#onboarding-a-new-customer--partner) | [`media-forking/README.md`](./media-forking/README.md) |
+<table>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Transport</th>
+      <th>Schema</th>
+      <th>Onboarding walkthrough</th>
+      <th>Reference docs</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2"><strong>Bring-Your-Own-Virtual-Agent (BYoVA)</strong></td>
+      <td>gRPC — bidirectional streaming, one short-lived RPC per turn</td>
+      <td>Protobuf</td>
+      <td rowspan="2"><a href="./bring-your-own/virtual-agent/README.md#onboarding-a-new-customer--partner"><code>bring-your-own/virtual-agent/README.md</code> § Onboarding</a></td>
+      <td><a href="./bring-your-own/virtual-agent/grpc-interface/README.md"><code>bring-your-own/virtual-agent/grpc-interface/README.md</code></a></td>
+    </tr>
+    <tr>
+      <td>WebSocket — one long-lived WebSocket per call (text frames)</td>
+      <td>JSON</td>
+      <td><a href="./bring-your-own/virtual-agent/web-socket-interface/README.md"><code>bring-your-own/virtual-agent/web-socket-interface/README.md</code></a></td>
+    </tr>
+    <tr>
+      <td><strong>Real-Time Media Forking</strong></td>
+      <td>gRPC — bidirectional streaming, one RPC per call</td>
+      <td>Protobuf</td>
+      <td><a href="./media-forking/README.md#onboarding-a-new-customer--partner"><code>media-forking/README.md</code> § Onboarding</a></td>
+      <td><a href="./media-forking/README.md"><code>media-forking/README.md</code></a></td>
+    </tr>
+  </tbody>
+</table>
 
 Every feature README covers:
 
