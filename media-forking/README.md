@@ -35,7 +35,7 @@ The proto contract is shipped with this sample at [`simulators/media-forking-jav
 
 The end-to-end interaction between WxCC and a forking server looks like this:
 
-![Media-forking sequence diagram: WxCC opens a StreamConversationAudio RPC, streams per-leg AudioStream frames during the call, then half-closes; the forking server acknowledges with SUCCESS](./images/media-forking-sequence.jpg)
+![Media-forking sequence diagram: WxCC opens a StreamConversationAudio RPC, streams per-leg AudioStream frames during the call, then half-closes; the forking server acknowledges with SUCCESS](./resources/images/media-forking-sequence.jpg)
 
 ## Integration Variants in This Directory
 
