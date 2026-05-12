@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: byova-multi-rpc-java
+  main:
+    # No HTTP server is started; keep Spring Boot from booting web support.
+    web-application-type: none
+
+logging:
+  level:
+    root: INFO
+    com.cisco.wccai: INFO
+
+grpc:
+  server:
+    port: 8086
+    shutdown-timeout-seconds: 30
+
+# JWS/JWT authorization for inbound gRPC calls.
+# Disable temporarily for local dev; in any deployed environment this MUST stay true.
+auth:
+  enabled: true
+  identity-broker-url: https://idbrokerbts.webex.com
+  public-key-cache-minutes: 60
+  # Must match the value of the `com.cisco.datasource.url` claim in the inbound JWT,
+  # i.e. the public URL registered with Webex CC for this BYoVA service.
+  datasource-url: https://your-byova-host.example.com:443
+  # The BYoVA schema UUID provisioned for your tenant in Control Hub.
+  datasource-schema-uuid: 00000000-0000-0000-0000-000000000000
+  valid-issuers:
+    - https://idbrokerbts.webex.com/idb
+    - https://idbrokerbts-eu.webex.com/idb
+    - https://idbroker.webex.com/idb
+    - https://idbroker-eu.webex.com/idb
+    - https://idbroker-b-us.webex.com/idb
+    - https://idbroker-ca.webex.com/idb
+
+voice:
+  va:
+    input-timeout-millis: 10000
+    audio:
+      use-chunked-audio: true
+      write-to-file: false
+      amplitude-threshold: 2000
+      wav-buffer-size: 8000
+      chunk-buffer-size: 4000
+      ignore-buffer-size: 15
+    dtmf:
+      input-length: 9
+      inter-digit-timeout-millis: 5000
+      # '#' key (sequence number 16 in the proto).
+      term-char: 16

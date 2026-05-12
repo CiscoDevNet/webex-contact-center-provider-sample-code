@@ -1,0 +1,10 @@
+.venv
+__pycache__
+*.pyc
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+code/src/proto/*_pb2.py
+code/src/proto/*_pb2_grpc.py
