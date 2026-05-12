@@ -40,12 +40,12 @@ A voice virtual agent is the conversational endpoint that picks up a contact-cen
 
 WxCC supports two transport protocols for BYoVA — gRPC (Protobuf) and WebSocket (JSON). The table below maps each combination to the reference implementation in this directory. Both variants implement the same conceptual contract (session start, audio in/out, DTMF, events, transfer, end); they just differ in transport and serialization.
 
-| Transport | Schema | Java sample |
+| Transport | Schema | Interface directory |
 |---|---|---|
-| **gRPC** (each interaction carried on its own short-lived RPC) | Protobuf | [`grpc-interface/simulators/byova-multi-rpc-java/`](./grpc-interface/simulators/byova-multi-rpc-java/) — Python sample also available at [`grpc-interface/simulators/byova-multi-rpc-python/`](./grpc-interface/simulators/byova-multi-rpc-python/) |
-| **WebSocket** | JSON | [`web-socket-interface/simulators/byova-websocket-json-java/`](./web-socket-interface/simulators/byova-websocket-json-java/) |
+| **gRPC** (each interaction carried on its own short-lived RPC) | Protobuf | [`grpc-interface/`](./grpc-interface/) |
+| **WebSocket** (A single persistent connection for a conversation) | JSON | [`web-socket-interface/`](./web-socket-interface/) |
 
-For per-variant prerequisites, run instructions, configuration knobs, and the gRPC/WebSocket message-by-message contract, head to the README inside the interface directory you choose.
+Each interface directory contains its own `README.md` (call-flow walkthrough, sequence diagrams, framing rules) alongside a `simulators/` folder with the runnable reference servers — open the directory link to browse both side by side.
 
 ## Audio & Runtime Constraints
 
