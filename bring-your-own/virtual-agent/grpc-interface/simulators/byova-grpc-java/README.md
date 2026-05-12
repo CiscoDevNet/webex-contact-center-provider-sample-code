@@ -21,7 +21,6 @@ For the underlying call-flow contract and sequence diagrams, see the [parent REA
 - [Configuration](#configuration)
 - [Authentication (JWS / JWT validation)](#authentication-jws--jwt-validation)
 - [Extending the Sample](#extending-the-sample)
-- [License](#license)
 
 ## Prerequisites
 

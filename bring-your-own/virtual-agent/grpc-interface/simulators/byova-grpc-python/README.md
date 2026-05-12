@@ -22,7 +22,6 @@ For the underlying call-flow contract and sequence diagrams, see the [parent REA
 - [Configuring Virtual Agents](#configuring-virtual-agents)
 - [Docker](#docker)
 - [Extending the Sample](#extending-the-sample)
-- [License](#license)
 
 ## Prerequisites
 
