@@ -8,13 +8,12 @@ This document describes:
 - The [`VoiceVirtualAgent`](https://github.com/webex/dataSourceSchemas/tree/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto) proto contract — defined by `voicevirtualagent.proto` and `byova_common.proto` — and the gRPC streaming guidelines that every BYoVA server must follow.
 - Detailed call-flow walkthroughs (with sequence diagrams) for session start, DTMF, audio (WAV and CHUNK), barge-in, and call termination scenarios.
 
-
 ---
 
 ## Table of Contents
 
 - [gRPC Virtual Agent Simulators](#grpc-virtual-agent-simulators)
-- [gRPC Bi-directional Streaming Guidelines](#grpc-bi-directional-streaming-guidelines)
+- [gRPC Bidirectional Streaming Guidelines](#grpc-bidirectional-streaming-guidelines)
 - [Virtual Agent Streaming and Event Handling Guidelines](#virtual-agent-streaming-and-event-handling-guidelines)
 - [Detailed Flow with Sequence Diagrams](#detailed-flow-with-sequence-diagrams)
     - [Step 1. Start of Conversation](#step-1-start-of-conversation)
@@ -33,24 +32,22 @@ Reference servers live under [`simulators/`](./simulators/). Each one is a self-
 
 | Simulator | Stack | Get started |
 |---|---|---|
-| [`simulators/byova-multi-rpc-java/`](./simulators/byova-multi-rpc-java/) | Spring Boot 3 / Java 21, `grpc-java`, Maven; protos generated locally via `protobuf-maven-plugin`. | `./mvnw spring-boot:run` (port `8086`). See the [module README](./simulators/byova-multi-rpc-java/README.md) for prerequisites, configuration, Docker, and extension points. |
-| [`simulators/byova-multi-rpc-python/`](./simulators/byova-multi-rpc-python/) | Python 3.10+, `grpcio` / `grpcio-tools`; protos fetched from upstream and generated on start-up. | `./run.sh` (port `8086`) handles venv, deps, proto fetch, codegen, and server start. See the [module README](./simulators/byova-multi-rpc-python/README.md) for manual setup, configuration, and Docker. |
+| [`simulators/byova-grpc-java/`](./simulators/byova-grpc-java/) | Spring Boot 3 / Java 21, `grpc-java`, Maven; protos generated locally via `protobuf-maven-plugin`. | `./mvnw spring-boot:run` (port `8086`). See the [module README](./simulators/byova-grpc-java/README.md) for prerequisites, configuration, Docker, and extension points. |
+| [`simulators/byova-grpc-python/`](./simulators/byova-grpc-python/) | Python 3.10+, `grpcio` / `grpcio-tools`; protos fetched from upstream and generated on start-up. | `./run.sh` (port `8086`) handles venv, deps, proto fetch, codegen, and server start. See the [module README](./simulators/byova-grpc-python/README.md) for manual setup, configuration, and Docker. |
 
 Folder layout at a glance:
 
 ```
 grpc-interface/
-├── README.md                        ← you are here
-├── resources/diagrams/              ← sequence diagrams used below
+├── README.md                  ← you are here
+├── resources/diagrams/        ← sequence diagrams used below
 └── simulators/
-    ├── byova-multi-rpc-java/        ← Java reference server
-    └── byova-multi-rpc-python/      ← Python reference server
+    ├── byova-grpc-java/       ← Java reference server
+    └── byova-grpc-python/     ← Python reference server
 ```
 
-> **Note on naming:** the simulator directories retain their original `byova-multi-rpc-*` names because that is also their Maven artifact / package identifier. The integration itself is referred to simply as **gRPC** throughout this documentation.
 
-
-## gRPC Bi-directional Streaming Guidelines
+## gRPC Bidirectional Streaming Guidelines
 
 1. `onNext`, `onError`, and `onCompleted` are the gRPC methods defined on the [`StreamObserver<T>`](https://grpc.github.io/grpc-java/javadoc/io/grpc/stub/StreamObserver.html) interface for Java. The names of these methods and their signatures vary across language-specific gRPC libraries; refer to the [gRPC documentation](https://grpc.io/docs/languages/) for your language.
 2. For each RPC, `onCompleted` will be called by the VA Client once it has finished sending data, which half-closes the RPC. Once the VA Server has finished sending all responses for the same RPC, it must call `onCompleted` to fully close it.
@@ -68,8 +65,6 @@ grpc-interface/
     - [`INPUT_VOICE_DTMF`](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L131) — both voice and DTMF inputs are accepted.
 
    If `INPUT_MODE` is not specified, [`INPUT_VOICE_DTMF`](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L131) is used as the default.
-
-
 
 ## Detailed Flow with Sequence Diagrams
 
@@ -101,7 +96,7 @@ grpc-interface/
 
 ### Step 3. Audio Input Flow
 
-At the start of the call, the VA Server must choose between **WAV Streaming** and **CHUNK Streaming**; this decision must not change during the call. For scripted virtual agents where prompts are pre-configured the VA Server should use WAV streaming; for longer prompts produced by LLMs it should use CHUNK streaming.
+At the start of the call, the VA Server must choose between **WAV Streaming** and **CHUNK Streaming**; this decision must not change during the call. For scripted virtual agents where prompts are pre-configured, the VA Server should use WAV streaming; for longer prompts produced by LLMs, it should use CHUNK streaming.
 
 - **WAV Streaming** — always send the response as [`FINAL`](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L110) in a single `onNext`, with the WAV header included in the audio, followed by `onCompleted`.
 - **CHUNK Streaming** — always send a [`FINAL`](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L110) response with **empty** audio after all the [`CHUNK`](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L112) responses, followed by `onCompleted`. The minimum [`CHUNK`](https://github.com/webex/dataSourceSchemas/blob/f625b9f80dd0673bc0da01f443e31104a1a66dbd/Services/VoiceVirtualAgent_5397013b-7920-4ffc-807c-e8a3e0a18f43/Proto/voicevirtualagent.proto#L112) size is 100 bytes and the maximum is 64 KB (65,536 bytes); keep chunks as large as possible up to that limit.
