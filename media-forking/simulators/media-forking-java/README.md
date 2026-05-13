@@ -2,11 +2,11 @@
 
 A reference implementation of the Webex Contact Center **Conversation Audio Forking** gRPC interface, built with Spring Boot 3 and `grpc-java`. It exposes the `ConversationAudio` bidirectional-streaming service so a partner-hosted server can receive the live audio of a Webex Contact Center call (caller and agent legs) for downstream processing — recording, real-time analytics, ASR, fraud detection, and so on.
 
-The sample is the gRPC equivalent of the dialog-connector-simulator's `ConversationAudioForkImpl`, refactored to:
+Key characteristics of this sample:
 
-- **Stand on its own** — no internal Cisco `media-service` dependency. The proto schemas (`conversationaudioforking.proto`, `common/media_service_common.proto`) are checked into `src/main/proto/` and compiled locally by `protobuf-maven-plugin`.
-- **Run as a Spring Boot service** — config externalised via `application.yml`, lifecycle managed via `ApplicationReadyEvent` / `@PreDestroy`, and dependencies wired via Spring rather than `new ...()`.
-- **Authenticate every call** — a `ServerInterceptor` validates the inbound JWS/JWT against the Webex Identity Broker JWKS and the configured datasource binding before any audio frame is delivered to the service.
+- **Self-contained** — no external proto dependency. The proto schemas (`conversationaudioforking.proto`, `common/media_service_common.proto`) are checked into `src/main/proto/` and compiled locally by `protobuf-maven-plugin`.
+- **Spring Boot service** — config externalised via `application.yml`, lifecycle managed via `ApplicationReadyEvent` / `@PreDestroy`, and dependencies wired via Spring rather than `new ...()`.
+- **Authenticates every call** — a `ServerInterceptor` validates the inbound JWS/JWT against the Webex Identity Broker JWKS and the configured datasource binding before any audio frame is delivered to the service.
 
 The sample does not transcode or re-emit the audio. The point of integration is the `ConversationAudioProcessor` service — replace its body with calls to your own ASR engine, recording sink, or analytics pipeline.
 
