@@ -28,17 +28,17 @@ forking:
 # Disable temporarily for local dev; in any deployed environment this MUST stay true.
 auth:
   enabled: true
-  identity-broker-url: https://idbrokerbts.webex.com
+  # Webex Identity Broker URL for your tenant/region. Refer to the Webex CC documentation
+  # for the correct value (it varies by region and by prod vs non-prod environments).
+  identity-broker-url: https://<your-webex-identity-broker-host>
   public-key-cache-minutes: 60
   # Must match the value of the `com.cisco.datasource.url` claim in the inbound JWT,
   # i.e. the public URL registered with Webex CC for this Conversation Audio Forking service.
   datasource-url: https://your-forking-host.example.com:443
   # The Conversation Audio Forking schema UUID provisioned for your tenant in Control Hub.
   datasource-schema-uuid: 00000000-0000-0000-0000-000000000000
+  # Allow-list of issuers (`iss` claim) accepted by this server. Refer to the Webex CC
+  # documentation for the correct value(s) for your tenant/region. Add additional entries
+  # if your deployment may receive traffic for multiple regions.
   valid-issuers:
-    - https://idbrokerbts.webex.com/idb
-    - https://idbrokerbts-eu.webex.com/idb
-    - https://idbroker.webex.com/idb
-    - https://idbroker-eu.webex.com/idb
-    - https://idbroker-b-us.webex.com/idb
-    - https://idbroker-ca.webex.com/idb
+    - https://<your-webex-identity-broker-host>/idb

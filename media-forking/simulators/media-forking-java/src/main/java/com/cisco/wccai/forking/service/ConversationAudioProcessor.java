@@ -20,8 +20,7 @@ import org.springframework.stereotype.Service;
  * Validates and (optionally) persists each forked audio frame received over the
  * Conversation Audio Forking gRPC stream.
  *
- * <p>The dialog-connector-simulator equivalent only logs an info line per request; this Spring
- * port adds two ergonomic improvements while keeping the same intent:
+ * <p>The sample focuses on visibility and offline inspection of the incoming audio:
  * <ul>
  *   <li>Per-conversation/per-role frame counters and byte counters so that high-volume streams
  *       don't drown the logs.</li>

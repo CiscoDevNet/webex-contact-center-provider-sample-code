@@ -6,18 +6,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * Configuration for inbound JWS/JWT authorization checks performed on every gRPC call.
  *
- * <p>Configured with the {@code auth} prefix in {@code application.yml}.
+ * <p>Configured with the {@code auth} prefix in {@code application.yml}. Operators must
+ * supply environment-specific values for {@link #identityBrokerUrl()} and
+ * {@link #validIssuers()} from the Webex CC documentation for their tenant — no defaults
+ * are baked into the source.
  *
- * @param enabled            master switch; when {@code false}, requests are accepted without
- *                           validation (intended for local development only)
- * @param identityBrokerUrl  fallback Cisco Identity Broker URL used when the inbound JWT does
- *                           not declare an issuer
- * @param validIssuers       list of issuers (`iss` claim) accepted by this server
- * @param datasourceUrl      expected value of the {@code com.cisco.datasource.url} JWT claim;
- *                           must match the URL registered with Webex CC (BYoDS)
+ * @param enabled              master switch; when {@code false}, requests are accepted without
+ *                             validation (intended for local development only)
+ * @param identityBrokerUrl    fallback Webex Identity Broker URL used when the inbound JWT does
+ *                             not declare an issuer (tenant/region-specific; required when
+ *                             {@code enabled} is true)
+ * @param validIssuers         allow-list of issuers ({@code iss} claim) accepted by this server
+ *                             (tenant/region-specific; required when {@code enabled} is true)
+ * @param datasourceUrl        expected value of the {@code com.cisco.datasource.url} JWT claim;
+ *                             must match the URL registered with Webex CC (BYoDS)
  * @param datasourceSchemaUuid expected value of the {@code com.cisco.datasource.schema.uuid}
  *                             claim; this is the BYoVA schema UUID
- * @param publicKeyCacheMinutes  how long fetched JWKS responses are cached in memory
+ * @param publicKeyCacheMinutes how long fetched JWKS responses are cached in memory
  */
 @ConfigurationProperties(prefix = "auth")
 public record AuthProperties(
@@ -29,22 +34,21 @@ public record AuthProperties(
         long publicKeyCacheMinutes) {
 
     public AuthProperties {
-        if (identityBrokerUrl == null || identityBrokerUrl.isBlank()) {
-            identityBrokerUrl = "https://idbrokerbts.webex.com";
-        }
-        if (validIssuers == null || validIssuers.isEmpty()) {
-            validIssuers = List.of(
-                    "https://idbrokerbts.webex.com/idb",
-                    "https://idbrokerbts-eu.webex.com/idb",
-                    "https://idbroker.webex.com/idb",
-                    "https://idbroker-eu.webex.com/idb",
-                    "https://idbroker-b-us.webex.com/idb",
-                    "https://idbroker-ca.webex.com/idb");
-        } else {
-            validIssuers = List.copyOf(validIssuers);
-        }
+        validIssuers = validIssuers == null ? List.of() : List.copyOf(validIssuers);
         if (publicKeyCacheMinutes <= 0) {
             publicKeyCacheMinutes = 60;
+        }
+        if (enabled) {
+            if (identityBrokerUrl == null || identityBrokerUrl.isBlank()) {
+                throw new IllegalStateException(
+                        "auth.identity-broker-url must be configured when auth.enabled=true; "
+                                + "set it to your Webex Identity Broker URL for your tenant/region.");
+            }
+            if (validIssuers.isEmpty()) {
+                throw new IllegalStateException(
+                        "auth.valid-issuers must be configured when auth.enabled=true; "
+                                + "set it to the issuer(s) used by your Webex tenant/region.");
+            }
         }
     }
 }

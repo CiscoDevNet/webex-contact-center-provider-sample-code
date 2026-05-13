@@ -30,6 +30,17 @@
         <nimbus-jose-jwt.version>9.47</nimbus-jose-jwt.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>os-maven-plugin-repo</id>
+            <url>https://mvnrepository.com/artifact/kr.motd.maven/os-maven-plugin</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
