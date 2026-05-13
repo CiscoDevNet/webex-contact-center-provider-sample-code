@@ -26,21 +26,17 @@
         <nimbus-jose-jwt.version>9.47</nimbus-jose-jwt.version>
     </properties>
 
-
     <repositories>
         <repository>
-            <id>contact-center-release</id>
-            <name>Repo to fetch internal libraries</name>
-            <url>https://engci-maven-master.cisco.com/artifactory/contact-center-release</url>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
         </repository>
-
         <repository>
-            <id>Identity</id>
-            <name>Repo to fetch Auth library</name>
-            <url>https://engci-maven-master.cisco.com/artifactory/webex-postpath-group</url>
+            <id>os-maven-plugin-repo</id>
+            <url>https://mvnrepository.com/artifact/kr.motd.maven/os-maven-plugin</url>
         </repository>
     </repositories>
-
+    
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

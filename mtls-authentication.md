@@ -18,9 +18,7 @@ This optional authentication method is currently available for the following fea
 - **Webex CCAI Certificate**: The certificate presented by the `Webex CCAI` during the handshake. This is typically provided by Cisco and is used to verify the identity of the `Webex CCAI`.
 
 ### `Webex CCAI` Certificate Details
-**Subject**: `CN=insight-orchestrator.intgus1.ciscoccservice.com, O=Cisco Systems Inc., L=San Jose, ST=California, C=US`
-
-**NOTE**: CN (Subject's Common Name) is subjected to change based on the environment, so please check the certificate details for your organization.
+The CN (Subject's Common Name) and other Subject fields of the `Webex CCAI` certificate vary by environment and region. Refer to the Webex CC documentation for your tenant to obtain the exact certificate Subject your `Dialog Connector` should expect during the mTLS handshake, and pin/validate against that value in your interceptor.
 
 ## Changes needed in `Dialog Connector Simulator`
 
