@@ -29,7 +29,7 @@ For the underlying call-flow contract and sequence diagrams, see the [parent REA
 - **Network access to Maven Central** the first time you build, to download Spring Boot, gRPC, and protobuf artifacts. The `protobuf-maven-plugin` will also pull the `protoc` binary for your OS.
 - *(Optional)* **Docker / Docker Compose** if you want to run the containerised version.
 
-The proto schemas (`voicevirtualagent.proto`, `common/byova_common.proto`) are checked into `src/main/proto/` — there is **no** dependency on the internal Cisco `media-service` jar.
+The proto schemas (`voicevirtualagent.proto`, `common/byova_common.proto`) are checked into `src/main/proto/` and compiled locally by the `protobuf-maven-plugin` — the module is fully self-contained and pulls only public Maven Central artifacts.
 
 ## Quick Start
 
