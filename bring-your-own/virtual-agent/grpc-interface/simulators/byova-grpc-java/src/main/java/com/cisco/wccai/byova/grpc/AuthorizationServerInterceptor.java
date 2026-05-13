@@ -17,10 +17,9 @@ import org.springframework.stereotype.Component;
  * gRPC {@link ServerInterceptor} that validates the JWS/JWT presented in the {@code
  * authorization} metadata header on every inbound call.
  *
- * <p>Behaviour mirrors the {@code dialog-connector-simulator}'s authorization interceptor: the
- * token is parsed, signature-verified against the issuer's JWKS, checked for required claims,
- * and bound to the configured datasource URL/schema UUID. Any failure terminates the call with
- * {@link Status#UNAUTHENTICATED}.
+ * <p>The token is parsed, signature-verified against the issuer's JWKS, checked for required
+ * claims, and bound to the configured datasource URL/schema UUID. Any failure terminates the
+ * call with {@link Status#UNAUTHENTICATED}.
  *
  * <p>Validation can be disabled by setting {@code auth.enabled=false} (intended for local
  * development against an unauthenticated client only).
