@@ -9,11 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Per-RPC observer that handles a single Conversation Audio Forking stream.
  *
- * <p>The contract mirrors the dialog-connector-simulator: the client sends one
- * {@link ConversationAudioForkingRequest} per audio frame, and the server replies with a single
- * {@link ConversationAudioForkingResponse} carrying {@code status_message="SUCCESS"} when the
- * client half-closes the stream. Errors are propagated to the response observer so the client's
- * {@code onError} callback is invoked.
+ * <p>The wire contract is: the client sends one {@link ConversationAudioForkingRequest} per
+ * audio frame, and the server replies with a single {@link ConversationAudioForkingResponse}
+ * carrying {@code status_message="SUCCESS"} when the client half-closes the stream. Errors are
+ * propagated to the response observer so the client's {@code onError} callback is invoked.
  */
 @Slf4j
 public class ConversationAudioRequestObserver
