@@ -114,6 +114,11 @@ message VoiceVAResponse {
     PARTIAL = 1;             // Expect more response from server
     CHUNK = 2;               // To enable the streaming flow.
   }
+
+  // Indicates whether the partial automated agent reply is non-interruptible when a later reply message arrives.
+  // For example, if the agent sends music as a partial response, it cannot be canceled when this is true.
+  // Default value is false.
+  bool disable_prompt_cancellation = 9;
 }
 
 // Describes the prompt (Voice or text) to be played to the caller.
