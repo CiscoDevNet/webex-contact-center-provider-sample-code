@@ -19,4 +19,8 @@ public class InputSpeechTimers {
 
     @JsonProperty("incomplete_timeout_msec")
     private Integer incompleteTimeoutMsec;
+
+    // Timeout while waiting for the caller's first voice or DTMF input.
+    @JsonProperty("no_input_timeout_msec")
+    private Integer noInputTimeoutMsec;
 }

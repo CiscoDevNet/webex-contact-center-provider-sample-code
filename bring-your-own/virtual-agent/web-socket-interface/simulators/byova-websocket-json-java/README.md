@@ -9,7 +9,7 @@ The sample handles the same three input types the WxCC platform sends:
 
 - **Event input** (`SESSION_START`, `NO_INPUT`, `CUSTOM_EVENT`, …)
 - **Audio input** — µ-law 8 kHz caller audio, silence-detected, buffered, and echoed back in either chunked or single-WAV mode.
-- **DTMF input** — digits mapped to pre-recorded audio prompts; `0` triggers `TRANSFER_TO_AGENT`, `*` triggers `SESSION_END`.
+- **DTMF input** — digits mapped to pre-recorded audio prompts; `5` triggers `TRANSFER_TO_AGENT`, `*` triggers `SESSION_END`.
 
 The sample is deliberately self-contained — prompts are loaded from the classpath under `src/main/resources/audio/` — so it can be run as a smoke test for a BYoVA integration without any external services.
 
@@ -98,21 +98,23 @@ The packaged jar is a Spring Boot fat jar with `ByovaWebsocketJsonJavaApplicatio
 
 All knobs are exposed through Spring Boot configuration; see [`src/main/resources/application.properties`](./src/main/resources/application.properties) for the defaults. The most commonly tweaked values:
 
-| Property                                      | Default | Description                                                  |
-|-----------------------------------------------|---------|--------------------------------------------------------------|
-| `server.port`                                 | `8086`  | HTTP/WebSocket listening port                                |
-| `spring.websocket.max-binary-message-buffer-size` | `10485760` | Max binary frame size (10 MB)                            |
-| `spring.websocket.max-session-idle-timeout`   | `900000` | Session idle timeout (15 min)                                |
-| `voice.va.input.timeout-millis`               | `10000` | Complete/incomplete speech timeout reported to WxCC          |
-| `voice.va.audio.use-chunked-audio`            | `true`  | `true` → emit `CHUNK` responses; `false` → single WAV `FINAL`|
-| `voice.va.audio.amplitude-threshold`          | `2000`  | PCM absolute amplitude above which a sample is "speech"      |
-| `voice.va.audio.write-to-file`                | `false` | Persist captured caller audio to `~/recorded-audio/`         |
-| `voice.va.dtmf.input-length`                  | `9`     | Max digits reported to WxCC                                  |
+| Property                                      | Default            | Description                                                  |
+|-----------------------------------------------|--------------------|--------------------------------------------------------------|
+| `server.port`                                 | `8086`             | HTTP/WebSocket listening port                                |
+| `spring.websocket.max-binary-message-buffer-size` | `10485760`         | Max binary frame size (10 MB)                            |
+| `spring.websocket.max-session-idle-timeout`   | `900000`           | Session idle timeout (15 min)                                |
+| `voice.va.no-input.timeout-millis`            | `15000`            | No-input timeout reported in `input_handling_config`          |
+| `voice.va.barge-in-enabled`                   | `false`            | Call-level prompt barge-in setting                           |
+| `voice.va.audio.use-chunked-audio`            | `true`             | `true` → emit `CHUNK` responses; `false` → single WAV `FINAL`|
+| `voice.va.audio.amplitude-threshold`          | `2000`             | PCM absolute amplitude above which a sample is "speech"      |
+| `voice.va.audio.write-to-file`                | `false`            | Persist captured caller audio to `~/recorded-audio/`         |
+| `voice.va.dtmf.input-length`                  | `9`                | Max digits reported to WxCC                                  |
+| `voice.va.dtmf.inter-digit-timeout-millis`    | `5000`             | Inter-digit timeout reported to WxCC                         |
 | `voice.va.dtmf.term-char`                     | `DTMF_DIGIT_POUND` | Terminator key                                    |
-| `auth.enabled`                                | `true`  | Master switch for JWT validation; see [Authentication](#authentication-jws--jwt-validation) |
-| `auth.datasource-url`                         | _placeholder_ | Public URL of this BYoVA service registered in Webex CC (must match `com.cisco.datasource.url` claim) |
-| `auth.datasource-schema-uuid`                 | _placeholder_ | BYoVA schema UUID provisioned for your tenant        |
-| `auth.public-key-cache-minutes`               | `60`    | TTL of the cached Identity Broker JWKS                       |
+| `auth.enabled`                                | `true`             | Master switch for JWT validation; see [Authentication](#authentication-jws--jwt-validation) |
+| `auth.datasource-url`                         | _placeholder_      | Public URL of this BYoVA service registered in Webex CC (must match `com.cisco.datasource.url` claim) |
+| `auth.datasource-schema-uuid`                 | _placeholder_      | BYoVA schema UUID provisioned for your tenant        |
+| `auth.public-key-cache-minutes`               | `60`               | TTL of the cached Identity Broker JWKS                       |
 
 Override at runtime via Spring's standard config sources (env vars, `--prop=value` CLI args, external `application.properties`, …):
 
