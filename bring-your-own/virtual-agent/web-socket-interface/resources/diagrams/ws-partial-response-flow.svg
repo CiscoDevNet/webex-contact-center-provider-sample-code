@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1660" viewBox="0 0 1600 1660">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b4b4b"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3f78b5"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #111; }
+      .laneTitle { font: 700 22px Arial, sans-serif; fill: #111; }
+      .boxTitle { font: 700 18px Arial, sans-serif; fill: #111; }
+      .label { font: 16px Arial, sans-serif; fill: #222; }
+      .small { font: 14px Arial, sans-serif; fill: #222; }
+      .tiny { font: 13px Arial, sans-serif; fill: #222; }
+      .event { font: 700 15px Arial, sans-serif; fill: #3f78b5; }
+      .eventGreen { font: 700 15px Arial, sans-serif; fill: #5d9b4a; }
+      .eventRed { font: 700 15px Arial, sans-serif; fill: #c33b3b; }
+      .eventPurple { font: 700 15px Arial, sans-serif; fill: #7657a7; }
+      .note { fill: #fffdf0; stroke: #555; stroke-width: 1.4; }
+      .webex { fill: none; stroke: #75a6db; stroke-width: 2.5; stroke-dasharray: 11 8; }
+      .partner { fill: none; stroke: #8f7ab2; stroke-width: 2.5; stroke-dasharray: 11 8; }
+      .lifeline { stroke: #777; stroke-width: 1.5; stroke-dasharray: 8 6; }
+      .msg { stroke: #4b4b4b; stroke-width: 1.6; marker-end: url(#arrow); }
+      .msgBlue { stroke: #3f78b5; stroke-width: 1.8; marker-end: url(#arrowBlue); }
+      .internal { stroke: #7657a7; stroke-width: 1.5; stroke-dasharray: 7 5; marker-end: url(#arrow); }
+      .divider { stroke: #b5b5b5; stroke-width: 1.2; stroke-dasharray: 5 5; }
+    </style>
+  </defs>
+
+  <rect x="12" y="12" width="1576" height="1636" fill="#ffffff" stroke="#333" stroke-width="2"/>
+
+  <!-- Header -->
+  <rect x="600" y="34" width="400" height="74" fill="#fff" stroke="#444" stroke-width="1.5"/>
+  <text x="800" y="80" text-anchor="middle" class="title">Delayed PARTIAL Response Flow</text>
+
+  <!-- Cloud boundaries -->
+  <rect x="118" y="38" width="535" height="1540" class="webex"/>
+  <rect x="947" y="38" width="535" height="1540" class="partner"/>
+  <text x="385" y="78" text-anchor="middle" class="laneTitle">Webex Cloud</text>
+  <text x="1215" y="78" text-anchor="middle" class="laneTitle">Partner Cloud</text>
+
+  <!-- Actor -->
+  <rect x="30" y="76" width="74" height="104" fill="#fff" stroke="#444" stroke-width="1.4"/>
+  <circle cx="67" cy="99" r="10" fill="none" stroke="#333" stroke-width="1.4"/>
+  <line x1="67" y1="109" x2="67" y2="142" stroke="#333" stroke-width="1.4"/>
+  <line x1="67" y1="118" x2="51" y2="130" stroke="#333" stroke-width="1.4"/>
+  <line x1="67" y1="118" x2="83" y2="130" stroke="#333" stroke-width="1.4"/>
+  <line x1="67" y1="142" x2="54" y2="159" stroke="#333" stroke-width="1.4"/>
+  <line x1="67" y1="142" x2="80" y2="159" stroke="#333" stroke-width="1.4"/>
+  <text x="67" y="174" text-anchor="middle" class="boxTitle">Caller</text>
+
+  <!-- Application boxes -->
+  <rect x="252" y="126" width="265" height="82" fill="#b8d9a7" stroke="#555" stroke-width="1.4"/>
+  <text x="384" y="161" text-anchor="middle" class="boxTitle">Webex Voice VA</text>
+  <text x="384" y="186" text-anchor="middle" class="boxTitle">Client Application</text>
+
+  <rect x="1085" y="126" width="265" height="82" fill="#b9aad8" stroke="#555" stroke-width="1.4"/>
+  <text x="1217" y="161" text-anchor="middle" class="boxTitle">Partner BYoVA</text>
+  <text x="1217" y="186" text-anchor="middle" class="boxTitle">WebSocket Connector</text>
+
+  <rect x="1097" y="245" width="241" height="66" fill="#eee8fa" stroke="#7657a7" stroke-width="1.3"/>
+  <text x="1217" y="273" text-anchor="middle" class="small">Partner AI / LLM /</text>
+  <text x="1217" y="294" text-anchor="middle" class="small">S2S / TTS runtime</text>
+
+  <!-- Lifelines -->
+  <line x1="67" y1="208" x2="67" y2="1548" class="lifeline"/>
+  <line x1="384" y1="208" x2="384" y2="1548" class="lifeline"/>
+  <line x1="1217" y1="208" x2="1217" y2="1548" class="lifeline"/>
+
+  <!-- Timing note -->
+  <rect x="147" y="230" width="490" height="112" class="note"/>
+  <text x="392" y="255" text-anchor="middle" class="boxTitle">The logical turn remains open</text>
+  <text x="392" y="280" text-anchor="middle" class="small">The partner may take 10–15 seconds to</text>
+  <text x="392" y="301" text-anchor="middle" class="small">prepare the final answer. Do not send FINAL</text>
+  <text x="392" y="322" text-anchor="middle" class="small">until the logical response is complete.</text>
+
+  <!-- Caller starts speaking -->
+  <line x1="67" y1="390" x2="384" y2="390" class="msgBlue"/>
+  <text x="225" y="379" text-anchor="middle" class="event">caller speaks</text>
+
+  <line x1="384" y1="440" x2="1217" y2="440" class="msg"/>
+  <text x="800" y="430" text-anchor="middle" class="event">VOICE_VA_REQUEST / audio_input chunks</text>
+
+  <!-- Boundary events back to Webex -->
+  <line x1="1217" y1="500" x2="384" y2="500" class="msgBlue"/>
+  <text x="800" y="490" text-anchor="middle" class="event">START_OF_INPUT</text>
+  <text x="800" y="515" text-anchor="middle" class="small">connector detected caller speech → Webex</text>
+
+  <line x1="1217" y1="570" x2="384" y2="570" class="msgBlue"/>
+  <text x="800" y="560" text-anchor="middle" class="event">END_OF_INPUT</text>
+  <text x="800" y="585" text-anchor="middle" class="small">connector detected silence / end of speech → Webex</text>
+
+  <!-- Internal partner processing -->
+  <line x1="1217" y1="635" x2="1217" y2="710" class="internal"/>
+  <text x="1252" y="665" class="small">send utterance to</text>
+  <text x="1252" y="685" class="small">partner AI runtime</text>
+
+  <!-- PARTIAL filler -->
+  <line x1="1217" y1="760" x2="384" y2="760" class="msg"/>
+  <text x="800" y="744" text-anchor="middle" class="eventGreen">VOICE_VA_RESPONSE / PARTIAL</text>
+  <text x="800" y="768" text-anchor="middle" class="small">filler prompt: “Let me pull that up.”</text>
+
+  <rect x="147" y="795" width="490" height="142" class="note"/>
+  <text x="392" y="821" text-anchor="middle" class="boxTitle">Prompt configuration</text>
+  <text x="392" y="848" text-anchor="middle" class="small">disable_prompt_cancellation = true</text>
+  <text x="392" y="872" text-anchor="middle" class="small">no_input_timeout_msec = 20000</text>
+  <text x="392" y="898" text-anchor="middle" class="small">Standalone PARTIAL carries a complete WAV.</text>
+  <text x="392" y="922" text-anchor="middle" class="small">The turn stays open; no FINAL is sent yet.</text>
+
+  <line x1="384" y1="970" x2="67" y2="970" class="msgBlue"/>
+  <text x="225" y="958" text-anchor="middle" class="event">Webex plays filler prompt completely</text>
+
+  <!-- Wait bracket -->
+  <path d="M 1055 790 L 1055 1030 M 1042 790 L 1068 790 M 1042 1030 L 1068 1030" fill="none" stroke="#7657a7" stroke-width="2"/>
+  <text x="1080" y="850" class="small">partner continues processing</text>
+  <text x="1080" y="874" class="small">and keeps the turn open</text>
+  <text x="1080" y="920" class="small">10–15 seconds is possible</text>
+  <text x="1080" y="944" class="small">when covered by the timeout</text>
+
+  <!-- Final audio ready -->
+  <line x1="1217" y1="1060" x2="1217" y2="1115" class="internal"/>
+  <text x="1242" y="1090" class="small">final answer audio ready</text>
+
+  <!-- Streamed answer -->
+  <line x1="1217" y1="1155" x2="384" y2="1155" class="msg"/>
+  <text x="800" y="1140" text-anchor="middle" class="eventPurple">CHUNK(s) — optional streamed answer audio</text>
+  <text x="800" y="1164" text-anchor="middle" class="small">raw headerless μ-law; send as soon as generated</text>
+
+  <line x1="384" y1="1215" x2="67" y2="1215" class="msgBlue"/>
+  <text x="225" y="1203" text-anchor="middle" class="event">Webex plays answer audio</text>
+
+  <!-- FINAL -->
+  <line x1="1217" y1="1280" x2="384" y2="1280" class="msg"/>
+  <text x="800" y="1264" text-anchor="middle" class="eventRed">FINAL</text>
+  <text x="800" y="1288" text-anchor="middle" class="small">closing signal, or contains the final raw fragment</text>
+
+  <rect x="147" y="1320" width="490" height="120" class="note"/>
+  <text x="392" y="1346" text-anchor="middle" class="boxTitle">FINAL closes the logical reply</text>
+  <text x="392" y="1373" text-anchor="middle" class="small">Set disable_prompt_cancellation = true</text>
+  <text x="392" y="1396" text-anchor="middle" class="small">when the closing audio must not be cut off.</text>
+  <text x="392" y="1420" text-anchor="middle" class="small">Nothing follows FINAL for this reply.</text>
+
+  <line x1="384" y1="1475" x2="67" y2="1475" class="msgBlue"/>
+  <text x="225" y="1463" text-anchor="middle" class="event">caller hears final answer; turn complete</text>
+
+  <!-- Format summary -->
+  <line x1="690" y1="1510" x2="1445" y2="1510" class="divider"/>
+  <text x="1067" y="1540" text-anchor="middle" class="small">Audio options: PARTIAL (WAV) → FINAL (WAV), or</text>
+  <text x="1067" y="1562" text-anchor="middle" class="small">PARTIAL (WAV) → CHUNK(s) (raw μ-law) → FINAL (empty/raw tail)</text>
+</svg>
