@@ -2,6 +2,10 @@
 **/.idea/*
 **/__pycache__
 **/__pycache__/*
+**/.pytest_cache/
+**/.ruff_cache/
+**/.venv/
+**/.env
 **/*.joblib
 **/.DS_Store
 *.DS_Store

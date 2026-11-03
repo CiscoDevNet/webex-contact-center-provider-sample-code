@@ -35,7 +35,10 @@ This repository is intentionally split by **feature** and by **transport**. Each
       <td rowspan="2"><strong>Bring-Your-Own-Virtual-Agent (BYoVA)</strong></td>
       <td>gRPC — bidirectional streaming, one short-lived RPC per turn</td>
       <td>Protobuf</td>
-      <td rowspan="2"><a href="./bring-your-own/virtual-agent/README.md#onboarding-a-new-customer--partner"><code>bring-your-own/virtual-agent/README.md</code> § Onboarding</a></td>
+      <td rowspan="2">
+        <a href="./bring-your-own/virtual-agent/README.md#onboarding-a-new-customer--partner">Manual setup</a><br />
+        <a href="./bring-your-own/virtual-agent/onboarding-automation/README.md">Automated provider onboarding</a>
+      </td>
       <td><a href="./bring-your-own/virtual-agent/grpc-interface/README.md"><code>bring-your-own/virtual-agent/grpc-interface/README.md</code></a></td>
     </tr>
     <tr>
@@ -72,6 +75,7 @@ Pick the simulator whose feature, schema, language, and transport match your tar
 | BYoVA (Virtual Agent) | gRPC | Protobuf | Java | [`bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-java/`](./bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-java/) |
 | BYoVA (Virtual Agent) | gRPC | Protobuf | Python | [`bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-python/`](./bring-your-own/virtual-agent/grpc-interface/simulators/byova-grpc-python/) |
 | BYoVA (Virtual Agent) | WebSocket | JSON | Java | [`bring-your-own/virtual-agent/web-socket-interface/simulators/byova-websocket-json-java/`](./bring-your-own/virtual-agent/web-socket-interface/simulators/byova-websocket-json-java/) |
+| BYoVA onboarding | HTTPS REST + webhooks | JSON | Python | [`bring-your-own/virtual-agent/onboarding-automation/`](./bring-your-own/virtual-agent/onboarding-automation/) |
 | Real-Time Media Forking | gRPC | Protobuf | Java | [`media-forking/simulators/media-forking-java/`](./media-forking/simulators/media-forking-java/) |
 
 Every simulator is self-contained — clone the repo, follow the **Quick Start** in that simulator's README, and you'll have a server listening locally in one command (`./mvnw spring-boot:run` for Java, `./run.sh` for Python).

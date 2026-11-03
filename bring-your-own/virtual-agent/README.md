@@ -10,10 +10,12 @@ This README focuses on the parts of the journey that are **specific to virtual a
 - [Integration Variants in This Directory](#integration-variants-in-this-directory)
 - [Audio & Runtime Constraints](#audio--runtime-constraints)
 - [Onboarding a New Customer / Partner](#onboarding-a-new-customer--partner)
-    - [Step 1. Create and Authorize a Service App](#step-1-create-and-authorize-a-service-app)
-    - [Step 2. Generate Service-App Tokens](#step-2-generate-service-app-tokens)
-    - [Step 3. Register a Data Source](#step-3-register-a-data-source)
-    - [Step 4. Create a BYoVA Config (Feature) and Flow](#step-4-create-a-byova-config-feature-and-flow)
+    - [Automate Provider Onboarding](#automate-provider-onboarding)
+    - [Manual Provider Onboarding](#manual-provider-onboarding)
+        - [Step 1. Create and Authorize a Service App](#step-1-create-and-authorize-a-service-app)
+        - [Step 2. Generate Service-App Tokens](#step-2-generate-service-app-tokens)
+        - [Step 3. Register a Data Source](#step-3-register-a-data-source)
+        - [Step 4. Create a BYoVA Config (Feature) and Flow](#step-4-create-a-byova-config-feature-and-flow)
 - [Runtime Authentication: JWS Validation](#runtime-authentication-jws-validation)
 - [Operational Considerations](#operational-considerations)
 - [Where to Go Next](#where-to-go-next)
@@ -63,7 +65,17 @@ The full event grammar, the protobuf field definitions, and per-step sequence di
 
 ## Onboarding a New Customer / Partner
 
-The Webex side of the integration is set up via the developer / control-hub portals. There are four sequential steps; you only need to do them once per tenant.
+The Webex side of the integration is set up via the Developer Portal, Control Hub, and Data Sources APIs. Choose the automated provider flow for repeatable partner onboarding, or use the four manual steps for development and troubleshooting.
+
+### Automate Provider Onboarding
+
+Use the [automated provider onboarding guide and Python sample](./onboarding-automation/README.md) when your provider service must react to customer authorization without manual token generation. The sample demonstrates the separate provider OAuth Integration, signed Service App lifecycle webhooks, customer-specific token retrieval, process-local idempotent Data Source provisioning, renewal, and deauthorization fencing.
+
+The customer still authorizes the Service App in Control Hub and binds the resulting Data Source ID to a Virtual Agent feature and flow. The sample automates provider-side plumbing; it does not modify customer routing.
+
+### Manual Provider Onboarding
+
+The following four steps are useful for a first integration, a sandbox, or manual recovery.
 
 ### Step 1. Create and Authorize a Service App
 
@@ -101,12 +113,12 @@ You can register a data source either through the developer portal UI ([here](ht
 
 ```bash
 curl --request POST \
-     --url https://webexapis.com/v1/dataSources \
+     --url https://webexapis.com/v1/datasources \
      --header 'Accept: application/json' \
      --header 'Authorization: Bearer <SERVICE_APP_ACCESS_TOKEN>' \
      --header 'Content-Type: application/json' \
      --data '{
-       "schemaId": "5397013b-7920-4ffc-807c-e8a3e0a18f43",
+       "schemaId": ["5397013b-7920-4ffc-807c-e8a3e0a18f43"],
        "url": "https://va.example.com/your-endpoint",
        "audience": "audience",
        "subject": "VA",
@@ -137,7 +149,7 @@ A few key fields:
 - **`tokenLifeMinutes`** — controls how long the issued JWS stays valid. Tune this to match your security policy and SLA.
 - **`jwsToken`** — the signed JWT Webex will present to your VA server on every call (see [JWS validation](#runtime-authentication-jws-validation) below). Persist this — your server needs to recognize it.
 
-> **Important:** It is the customer's responsibility to keep the data source alive. Use the [Update Data Source](https://developer.webex.com/webex-contact-center/docs/api/v1/data-sources/update-a-data-source) `PUT` API to refresh the JWS before it expires; if the data source goes inactive, all calls into your VA server will start failing.
+> **Important:** The provider must keep the Data Source credential current. Use the [Update Data Source](https://developer.webex.com/webex-contact-center/docs/api/v1/data-sources/update-a-data-source) `PUT` API with a fresh nonce before `tokenExpiryTime`; Webex does not open a connection with an expired credential.
 
 ### Step 4. Create a BYoVA Config (Feature) and Flow
 
