@@ -3,6 +3,7 @@ package com.cisco.wccai.handler;
 import com.cisco.wccai.service.VirtualAgentProcessor;
 import com.cisco.wccai.ws.voice.VoiceVARequest;
 import com.cisco.wccai.ws.voice.WsEnvelopeVoiceVARequest;
+import com.cisco.wccai.ws.voice.WsEnvelopePong;
 import com.cisco.wccai.ws.voice.constant.MessageType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,8 @@ import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import java.time.Instant;
 
 
 @Slf4j
@@ -44,6 +47,16 @@ public class VirtualAgentWebSocketHandler extends TextWebSocketHandler {
                 }
                 case PING -> {
                     log.info("Received ping message from sessionId: {}", session.getId());
+                    WsEnvelopePong pong = new WsEnvelopePong();
+                    pong.setType(MessageType.PONG.name());
+                    // The application-level PONG must echo the PING sequence number.
+                    pong.setSeq(envelopeVoiceVARequest.getSeq());
+                    pong.setTs(Instant.now().toString());
+                    pong.setConversationId(envelopeVoiceVARequest.getConversationId());
+                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(pong)));
+                }
+                case PONG -> {
+                    log.info("Received application-level pong from sessionId: {}", session.getId());
                 }
                 case ERROR -> {
                     log.error("Received error message from sessionId: {}: {}", session.getId(), payload);
@@ -64,6 +77,7 @@ public class VirtualAgentWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        virtualAgentProcessor.cleanup(session);
         log.info("Virtual Agent WebSocket connection closed for sessionId: {}, status: {}", session.getId(), status);
     }
 

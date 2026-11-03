@@ -39,12 +39,24 @@ public class VirtualAgentProcessor {
         log.info("Received {} event for conversationId: {}", eventInputType, voiceVARequest.getConversationId());
 
         switch (eventInputType) {
+            // SESSION_START begins the turn and establishes the input-handling configuration.
             case SESSION_START -> virtualAgentService.sendMessage(session, virtualAgentAdaptor.callStartEventResponse());
-            case SESSION_END -> log.info("Session is ended for conversationId: {}", voiceVARequest.getConversationId());
+            case SESSION_END -> {
+                // SESSION_END is inbound from Webex; release per-session audio state here.
+                log.info("Session is ended for conversationId: {}", voiceVARequest.getConversationId());
+                audioStreamingService.cleanup(session);
+            }
+            // Webex is the source of NO_INPUT; the partner does not send this event to Webex.
             case NO_INPUT -> virtualAgentService.sendMessage(session, virtualAgentAdaptor.noInputEventResponse());
+            // START_OF_DTMF marks collection start; the digits arrive later as one DTMF input batch.
+            case START_OF_DTMF -> log.info("DTMF collection started for conversationId: {}", voiceVARequest.getConversationId());
             case CUSTOM_EVENT -> handleCustomEvent(voiceVARequest, eventInputWrapper, session);
             default -> log.warn("Ignoring event type: {} for conversationId: {}", eventInputType, voiceVARequest.getConversationId());
         }
+    }
+
+    public void cleanup(WebSocketSession session) {
+        audioStreamingService.cleanup(session);
     }
 
     private void handleCustomEvent(VoiceVARequest voiceVARequest, EventInputWrapper eventInputWrapper, WebSocketSession session) throws IOException {

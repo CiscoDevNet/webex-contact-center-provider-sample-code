@@ -117,6 +117,13 @@ public class AudioStreamingService {
         }
     }
 
+    public void cleanup(WebSocketSession session) {
+        if (session != null) {
+            // discard buffered caller audio when the WebSocket/session ends; do not reuse it for another call.
+            audioStreamStates.remove(session.getId());
+        }
+    }
+
     private void processBufferedAudio(WebSocketSession session, AudioStreamState audioStreamState) throws IOException {
         if (audioStreamState.callerAudioBuffer.size() > 0) {
             sendEndOfInputEventIfNotSent(session, audioStreamState);
@@ -138,6 +145,7 @@ public class AudioStreamingService {
 
     // This is non-chunking flow where a single final response is sent with wav header
     private void processWavAudio(WebSocketSession session, byte[] bufferedAudio) throws IOException {
+        // standalone prompt/audio response flow; see the audio container section.
         // add wav header to the audio content
         String encodedAudioContent = Base64.getEncoder().encodeToString(bufferedAudio);
         String wavAudioContent = MU_LAW_WAV_HEADER_B64.concat(encodedAudioContent);
@@ -154,6 +162,7 @@ public class AudioStreamingService {
 
     // This is chunking flow where multiple chunk responses are sent for a single audio response without wav header
     private void processChunkAudio(WebSocketSession session, byte[] currentUlawAudioBuffer) throws IOException {
+        // streamed CHUNK sequence followed by FINAL; chunk container behavior remains a separate final review item.
         String wavAudioContent = Base64.getEncoder().encodeToString(currentUlawAudioBuffer);
 
         // prepare and send VA CHUNK responses with raw audio content and both input mode VOICE and DTMF
@@ -179,6 +188,7 @@ public class AudioStreamingService {
     private void sendStartOfInputEventIfNotSent(WebSocketSession session, AudioStreamState audioStreamState) throws IOException {
         if (!audioStreamState.isStartOfInputSent) {
             audioStreamState.isStartOfInputSent = true;
+            // after the partner detects caller speech, send START_OF_INPUT to Webex.
             log.info("Sending START_OF_INPUT event to client");
             virtualAgentService.sendMessage(session, virtualAgentAdaptor.prepareVAResponse(START_OF_INPUT));
         }
@@ -187,6 +197,7 @@ public class AudioStreamingService {
     private void sendEndOfInputEventIfNotSent(WebSocketSession session, AudioStreamState audioStreamState) throws IOException {
         if (audioStreamState.isStartOfInputSent) {
             audioStreamState.isStartOfInputSent = false;
+            // after the partner detects silence/caller completion, send END_OF_INPUT to Webex.
             log.info("Sending END_OF_INPUT event to client");
             virtualAgentService.sendMessage(session, virtualAgentAdaptor.prepareVAResponse(END_OF_INPUT));
         }
